@@ -12,8 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -76,8 +76,8 @@ jobs:
   yara:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -105,8 +105,8 @@ jobs:
   strelka:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -160,8 +160,8 @@ jobs:
           - services/ingest
           - services/dashboard
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -170,7 +170,7 @@ jobs:
       # web/dist holding only the marker that keeps //go:embed compiling. That is
       # enough to build the binary; it is not enough to know the front end still
       # type-checks, which is what this does.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: matrix.module == 'services/dashboard'
         with:
           node-version: '24'
