@@ -4,25 +4,25 @@
 
 Three kinds of entry live here.
 
-**Specified** — behaviour Sublime documents. We cite the sentence. If we disagree with the
-docs, we are wrong.
+**Specified.** Behaviour Sublime documents, with the sentence cited. If we disagree with
+the docs, we're wrong.
 
-**Specified by observation** — behaviour no page defines, settled by running the
-expression on Sublime's own engine. Dated, because an engine can change and an undated
+**Specified by observation.** Behaviour no page defines, settled by running the expression
+on Sublime's own engine. Every one is dated, because an engine can change and an undated
 assertion hides that.
 
-**Inferred** — behaviour no published page defines and no experiment has settled, where we
-had to choose. Each one is a live compatibility risk.
+**Inferred.** Behaviour no published page defines and no experiment has settled, where we
+had to make a choice. Each one is a live compatibility risk.
 
-All three have a corresponding test. Changing a row here means changing a test, which makes
-the blast radius visible.
+All three have a corresponding test, so changing a row here means changing a test. That's
+what keeps the blast radius visible.
 
 ## How to settle an inferred entry
 
 `analyzer.sublime.security` is Sublime's free EML Analyzer API and needs no credentials.
 Its `/v0/messages/analyze` endpoint takes `queries`, which return a **value** rather than a
-verdict — and that is the whole trick, because it makes `null` observable where a rule
-verdict would flatten it to no-match.
+verdict. That's the whole trick: it makes `null` observable, where a rule verdict would
+flatten it to no-match.
 
 `mql/differential_test.go` holds the harness:
 
@@ -33,13 +33,13 @@ LAZARET_DIFFERENTIAL=1 go test ./mql/ -run Differential -v
 Add a probe there rather than running a one-off, so the answer keeps being checked. Then
 move the row to **Specified by observation** and record the date.
 
-Two practical notes, learned doing this:
+Two practical notes, learned the hard way:
 
 - MQL has no null literal that type-checks as a boolean. `strings.contains(x, "s")` over a
-  null `x` is the lever — it is a boolean-typed null, and every three-valued probe is built
-  on it.
-- Keep probes dependent on exactly one absent scalar (`headers.in_reply_to`). Anything that
-  leans on richer parsing risks reading a difference in *EML parsing* as a difference in
+  null `x` is the lever you need, since it's a boolean-typed null, and every three-valued
+  probe is built on it.
+- Keep probes dependent on exactly one absent scalar (`headers.in_reply_to`). Anything
+  leaning on richer parsing risks reading a difference in *EML parsing* as a difference in
   *evaluation semantics*.
 
 ---
@@ -48,23 +48,23 @@ Two practical notes, learned doing this:
 
 | Expression | Result | Source |
 |---|---|---|
-| `length(null)` on a string | `null` | functions — "If the input string is `null`, the function returns `null`." |
-| `length(null)` on an array | `0` — but see below | functions — "If the input array is `null`, the function returns `0`." The docs mean an *absent* array, which the MDM represents as `[]`. A genuinely null array, as an enrichment result is, gives `null`; see "A null array is not an empty array". |
-| `length(null)` on a map | `0` | functions — "If the input map is `null`, the function returns `0`." |
-| `length(null)` on json | `null` | functions — "If the input is `null`, the function returns `null`." |
-| `coalesce(null, …)` all null | `null` | functions — "If all arguments are `null` then `null` is returned." |
-| `all([], expr)` | `true` | functions — "If the array is empty, then `all` is vacuously `true`." |
-| `ratio([], expr)` | `null` | functions — "If the array is empty, `ratio` returns `null`." |
-| `ratio([1,2,null,null], . > 0)` | `0.5` | functions — nulls count toward the denominator |
-| `s[a:b]` with any null operand | `null` | syntax — "If the string, start position, or end position is `null`, the slice returns `null`." |
-| `arr[-1]`, `arr[oob]` | `null` | composite types — "negative indexes will always return `null`" |
-| `arr[100:200]` out of range | `[]` | composite types — slice bounds clamp |
-| `regex.match(null, …)` | `null` | regex — "If `input` is `null`, then `match` and `imatch` will return null." |
-| unmatched capture group | `""` | regex — "individual captures are never `null` but `\"\"`" |
-| `strings.contains(null, …)` | `null` | strings — null source, or all substrings null |
+| `length(null)` on a string | `null` | functions: "If the input string is `null`, the function returns `null`." |
+| `length(null)` on an array | `0`, but see below | functions: "If the input array is `null`, the function returns `0`." The docs mean an *absent* array, which the MDM represents as `[]`. A genuinely null array, as an enrichment result is, gives `null`; see "A null array is not an empty array". |
+| `length(null)` on a map | `0` | functions: "If the input map is `null`, the function returns `0`." |
+| `length(null)` on json | `null` | functions: "If the input is `null`, the function returns `null`." |
+| `coalesce(null, …)` all null | `null` | functions: "If all arguments are `null` then `null` is returned." |
+| `all([], expr)` | `true` | functions: "If the array is empty, then `all` is vacuously `true`." |
+| `ratio([], expr)` | `null` | functions: "If the array is empty, `ratio` returns `null`." |
+| `ratio([1,2,null,null], . > 0)` | `0.5` | functions: nulls count toward the denominator |
+| `s[a:b]` with any null operand | `null` | syntax: "If the string, start position, or end position is `null`, the slice returns `null`." |
+| `arr[-1]`, `arr[oob]` | `null` | composite types: "negative indexes will always return `null`" |
+| `arr[100:200]` out of range | `[]` | composite types: slice bounds clamp |
+| `regex.match(null, …)` | `null` | regex: "If `input` is `null`, then `match` and `imatch` will return null." |
+| unmatched capture group | `""` | regex: "individual captures are never `null` but `\"\"`" |
+| `strings.contains(null, …)` | `null` | strings: null source, or all substrings null |
 | `strings.parse_domain` / `parse_email` / `parse_json` on unparseable input | `null` | strings |
-| `strings.scan_base64` finding nothing | `[]` | strings — empty array, *not* null |
-| JSON compared across mismatched types | `null` | composite types — "mismatching types will result in a `null` result" |
+| `strings.scan_base64` finding nothing | `[]` | strings: empty array, *not* null |
+| JSON compared across mismatched types | `null` | composite types: "mismatching types will result in a `null` result" |
 
 ## Specified: evaluation
 
@@ -112,32 +112,32 @@ an assertion: Sublime may change, and `mql/differential_test.go` is what would n
 | `not x is null` | `false` | `is null` binds as a comparison, tighter than `not` |
 | `regex.contains/count/extract(null, …)` | `null` | matches the documented `regex.match` |
 | `strings.levenshtein(null, …)` | `null` | |
-| `strings.like` with `\*` | **a lex error** | "Invalid escape sequence" — there is no escape, and the star is not silently literal |
+| `strings.like` with `\*` | **a lex error** | "Invalid escape sequence". There is no escape, and the star is not silently literal |
 | a rule whose source evaluates to null | no match | upstream reports `matched: false` with no reason; `indeterminate` is our addition |
 
 The `of` rule, stated once: **if the true clauses alone reach the threshold the answer is
-true; otherwise any undecided clause makes it null; otherwise false.** This is the one
-entry the differential run contradicted. The engine previously treated `of` as a plain
-count in which a null simply failed to contribute, answering `false` for the middle three
-rows above. Corrected in `mql/eval.go`.
+true; otherwise any undecided clause makes it null; otherwise false.** This is the one entry
+the differential run contradicted. The engine used to treat `of` as a plain count in which a
+null simply failed to contribute, answering `false` for the middle three rows above.
+Corrected in `mql/eval.go`.
 
 ### Also found, not previously recorded
 
 | Behaviour | Detail |
 |---|---|
-| `is null` is scalar-only | `body.links is null` is a **type error** upstream — "Expected a scalar, got [Link]". Arrays are never null in the MDM; an absent one is `[]`. |
+| `is null` is scalar-only | `body.links is null` is a **type error** upstream: "Expected a scalar, got [Link]". Arrays are never null in the MDM; an absent one is `[]`. |
 | `any of` / `all of` / `none of` are not MQL | Sublime's parser rejects all three: "Unknown attribute `any`". See the parsing section below. |
 
 ### A null array is not an empty array
 
 The sharpest distinction in the language, and the one that produced this engine's only
-false positive against Sublime's own verdicts. MDM arrays are never null — an absent one
-is `[]` — but **enrichment results are**: `ml.nlu_classifier(x).topics` with no ML service
-is a null array, and so is `regex.extract(null, …)`, which is how these were probed
-without needing a service.
+false positive against Sublime's own verdicts. MDM arrays are never null, since an absent
+one is `[]`. But **enrichment results are**. `ml.nlu_classifier(x).topics` with no ML
+service is a null array, and so is `regex.extract(null, …)`, which is how we probed these
+without needing a service at all.
 
-Which builtins propagate the null and which absorb it is irregular, so every one was
-measured rather than derived.
+Which builtins propagate the null and which absorb it is irregular, so we measured every
+one rather than deriving it.
 
 | Over a **null** array | Result | | Over an **empty** array |
 |---|---|---|---|
@@ -154,22 +154,23 @@ measured rather than derived.
 `any` is the one that matters. The corpus is full of `not any(ml.…(…), …)` written to
 exclude newsletters and benign mail, so folding null to empty makes `any` false, `not any`
 true, and a brand-impersonation rule fires **because** the classifier was unavailable.
-That is this project's one invariant inverted — not degraded to false, but promoted to
-true — and it is a false positive rather than a lost detection. Fixed in
-`mql/builtins.go`; pinned by `TestNullArrayIsNotEmptyArray`.
+That's this project's central invariant inverted rather than merely degraded: promoted to
+true, not dropped to false, which makes it a false positive instead of a lost detection.
+Fixed in `mql/builtins.go` and pinned by `TestNullArrayIsNotEmptyArray`.
 
 ### An unresolvable `$list` is a missing capability
 
-Not a Sublime observation — a consequence of the same invariant, found by the same run.
+This isn't a Sublime observation. It's a consequence of the same invariant, found by the
+same run.
 
-The `lists` package already answers "I do not know" for a list nobody configured rather
-than "no". The evaluator used to discard that and return a bare null, which reads as a
-clean no-match at the top level because nothing was recorded as missing. Since
+The `lists` package already answers "I don't know" for a list nobody configured, rather than
+"no". The evaluator used to discard that and return a bare null, which reads as a clean
+no-match at the top level because nothing got recorded as missing. Since
 `$high_trust_sender_root_domains` gates 683 corpus rules and `$org_domains` another 202,
 that silently switched off a large part of the corpus while reporting full confidence.
 
-Unresolvable lists are now recorded through `enrich.ListCapability`, so the verdict is
-`indeterminate` and the report names the list as written — `missing: $recipient_emails`.
+Unresolvable lists are now recorded through `enrich.ListCapability`, so the verdict comes
+back `indeterminate` and the report names the list as written: `missing: $recipient_emails`.
 
 ## Inferred: still unsettled
 
@@ -186,10 +187,11 @@ What the differential run could not reach, because the construct does not exist 
 | slicing a **null array**, `a[0:1]` | `null` | `[]` |
 
 A null carries no type at evaluation time, and the documented rule for slicing a null
-*string* is `null`. Telling them apart needs the checker's static type threaded onto the
-AST — real work for no corpus benefit, since the only genuine MQL slice in the corpus is
-`[0:39]` over a string, where our answer is already the documented one. Pinned by
-`TestDifferentialKnownSliceDivergence`, which fails if upstream ever agrees with us.
+*string* is `null`. Telling the two apart would mean threading the checker's static type
+onto the AST, which is real work for no corpus benefit: the only genuine MQL slice in the
+corpus is `[0:39]` over a string, where our answer already matches the documented one.
+Pinned by `TestDifferentialKnownSliceDivergence`, which fails if upstream ever agrees with
+us.
 
 ## Inferred: building the model from a message
 
@@ -199,7 +201,7 @@ every decision below is ours.
 
 | Question | Our choice | Reasoning |
 |---|---|---|
-| splitting current from quoted threads | anchored attribution patterns per client (`On … wrote:`, Outlook header blocks, `-----Original Message-----`, Gmail/Outlook wrappers), else a run of two or more `>`-quoted lines | The single largest risk in the parser — `body.current_thread.text` has 2,499 uses. Split too eagerly and the sender's own words vanish; too reluctantly and every reply inherits the words of the conversation it quotes. Kept in one file, `eml/thread.go`, so it can be replaced wholesale. |
+| splitting current from quoted threads | anchored attribution patterns per client (`On … wrote:`, Outlook header blocks, `-----Original Message-----`, Gmail/Outlook wrappers), else a run of two or more `>`-quoted lines | The single largest risk in the parser, and `body.current_thread.text` has 2,499 uses. Split too eagerly and the sender's own words vanish; too reluctantly and every reply inherits the words of the conversation it quotes. Kept in one file, `eml/thread.go`, so it can be replaced wholesale. |
 | a single `>` line | not a split | People quote one line inline and keep writing around it. Treating that as the end of the message truncates what the sender said, which is what most rules are looking for. |
 | prose containing "wrote:" | not a split | Patterns are anchored to the start of a line, so "As I wrote: …" does not truncate a message. |
 | `previous_threads` ordering | index 0 is the most recent quoted message | Matches the corpus idiom `body.previous_threads[length(...) - 1]` for "the oldest message in the chain". |
@@ -215,10 +217,10 @@ every decision below is ours.
 
 ## Inferred: the type system
 
-The checker is deliberately permissive, because the two mistakes it can make do not cost
-the same. Rejecting a rule Sublime accepts breaks a detection someone depends on; accepting
-one we might have rejected only means the mistake surfaces at evaluation as null. So
-anything genuinely ambiguous is allowed through.
+The checker is deliberately permissive, because its two possible mistakes don't cost the
+same. Rejecting a rule Sublime accepts breaks a detection someone depends on. Accepting one
+we might have rejected only means the mistake surfaces at evaluation as null. So anything
+genuinely ambiguous gets allowed through.
 
 | Question | Our choice | Reasoning |
 |---|---|---|
@@ -237,6 +239,6 @@ anything genuinely ambiguous is allowed through.
 | Question | Our choice | Reasoning |
 |---|---|---|
 | `...` and deeper scope climbing | each additional `.` climbs one lexical scope | Documented for `..`; the corpus uses `...` for the grandparent, so the rule generalises. |
-| `any of (...)` / `all of (...)` / `none of (...)` | thresholds of 1, N, and 0 respectively — **an extension, not compatibility** | Believed to be undocumented word forms used in the corpus. They are not: all 25 occurrences of "any of", "all of" and "none of" in the corpus are inside `//` comments, and Sublime's parser rejects the syntax outright ("Unknown attribute `any`"). We accept a superset of MQL here. A rule written with these forms runs on this engine and fails on Sublime, so `docs/COMPATIBILITY.md` records it and `TestDifferentialRejectsOurExtensions` pins it. |
-| escape handling inside `'raw strings'` | no escapes at all; only `''` is special | Documented — and load-bearing: the corpus contains `'\'`, a raw string holding one backslash. Treating `\'` as an escape breaks the parse. |
+| `any of (...)` / `all of (...)` / `none of (...)` | thresholds of 1, N, and 0 respectively. **An extension, not compatibility** | Believed to be undocumented word forms used in the corpus. They are not: all 25 occurrences of "any of", "all of" and "none of" in the corpus are inside `//` comments, and Sublime's parser rejects the syntax outright ("Unknown attribute `any`"). We accept a superset of MQL here. A rule written with these forms runs on this engine and fails on Sublime, so `docs/COMPATIBILITY.md` records it and `TestDifferentialRejectsOurExtensions` pins it. |
+| escape handling inside `'raw strings'` | no escapes at all; only `''` is special | Documented, and load-bearing: the corpus contains `'\'`, a raw string holding one backslash. Treating `\'` as an escape breaks the parse. |
 | keyword arguments | positional arguments first, then `name=value`, with per-function defaults | Undocumented but used throughout the corpus. |

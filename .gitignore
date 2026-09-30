@@ -13,6 +13,20 @@ testdata/
 !/strelka/testdata/
 !/strelka/testdata/**
 
+# ...and except the Office fixture generator, which is source.
+#
+# The fixtures it writes are not committed: a macro-bearing .docm and a CVE-2021-40444
+# reproduction are exactly what a scanner flags, and a public repository carrying them
+# invites trouble it does not need. CI builds them before running the tests.
+#
+# Re-including one file needs three lines because git cannot re-include anything inside
+# an excluded directory. So the directory comes back, its contents go out again, and the
+# generator comes back on its own. Without the middle line every .docm it writes would
+# show up as untracked and be one `git add -A` away from being committed.
+!/oletools/testdata/
+/oletools/testdata/*
+!/oletools/testdata/generate.py
+
 # Service binaries. `go build ./...` inside services/<name> writes one named after the
 # directory. There is no gitignore pattern for "an extensionless file", so these are
 # listed — and this list has now been wrong twice, each time because a new service was

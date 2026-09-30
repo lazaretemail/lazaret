@@ -386,7 +386,7 @@ func (h *browserHost) Tabs() int { return cap(h.tabs) }
 // dir is this host's own directory: it gets a profile and a crash-dump database
 // under it, and nothing else writes there.
 func baseFlags(dir string) []chromedp.ExecAllocatorOption {
-	return []chromedp.ExecAllocatorOption{
+	opts := []chromedp.ExecAllocatorOption{
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
 		chromedp.Headless,
@@ -418,6 +418,18 @@ func baseFlags(dir string) []chromedp.ExecAllocatorOption {
 		// host its own and nothing leaks between them.
 		chromedp.Env("HOME=" + dir),
 	}
+
+	// The same browser the one-shot path picks.
+	//
+	// Without this, chromedp resolves the binary itself, and its list does not include
+	// "chrome-headless-shell" — so a host with only that installed ran one-shot renders
+	// happily while every reused browser failed with `exec: "google-chrome": executable
+	// file not found`. Two lookup orders in one service, and the preference recorded in
+	// render.go applied to only one of them.
+	if bin, err := findBrowser(); err == nil {
+		opts = append(opts, chromedp.ExecPath(bin))
+	}
+	return opts
 }
 
 // screenshotOf captures the viewport at a fixed size and pixel density.

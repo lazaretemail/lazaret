@@ -81,6 +81,17 @@ func (r *Renderer) binary() (string, error) {
 	if r.Binary != "" {
 		return r.Binary, nil
 	}
+	return findBrowser()
+}
+
+// findBrowser resolves the browser both paths use.
+//
+// Shared with the reused-browser hosts on purpose. They used to let chromedp resolve it,
+// and chromedp's own list does not contain "chrome-headless-shell" at all — so on a host
+// with only that installed, the one-shot path started happily while every reused browser
+// failed with `exec: "google-chrome": executable file not found`. Two lookup orders in one
+// service meant the preference recorded below was quietly ignored by the default path.
+func findBrowser() (string, error) {
 	// The headless-only builds first.
 	//
 	// chrome-headless-shell is the same Blink engine with the browser around it

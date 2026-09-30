@@ -225,6 +225,35 @@ jobs:
           npm ci
           npm run build      # vue-tsc runs first, so this type-checks as well
 
+      # A known browser, rather than whatever the runner image happens to ship.
+      #
+      # The render tests skip when no browser is on PATH, so they were silently running
+      # against Ubuntu's chromium, which is a snap. A snap's first start can take tens of
+      # seconds, and that surfaced as two failures that reproduce nowhere else:
+      # "websocket url timeout reached" waiting for the DevTools URL, and a render that
+      # overran its 30s budget. Neither is a bug in the code under test.
+      #
+      # chrome-headless-shell is what the renderer already prefers (see binary() in
+      # render.go), it is a plain binary with no snap confinement, and pinning the
+      # version means a runner image change cannot quietly alter what these tests ran
+      # against.
+      - name: Install a browser for the render tests
+        if: matrix.module == 'services/render'
+        run: |
+          set -eux
+          version=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["channels"]["Stable"]["version"])')
+          curl -fsSL -o /tmp/chs.zip \
+            "https://storage.googleapis.com/chrome-for-testing-public/$version/linux64/chrome-headless-shell-linux64.zip"
+          unzip -q /tmp/chs.zip -d /tmp
+          # The whole directory, not just the binary: it loads icudtl.dat and its .pak
+          # files from beside itself, and a lone binary dies with "Invalid file
+          # descriptor to ICU data received". A symlink onto PATH is fine, because
+          # Chrome resolves its resources against the real path.
+          sudo mv /tmp/chrome-headless-shell-linux64 /opt/chrome-headless-shell
+          sudo ln -sf /opt/chrome-headless-shell/chrome-headless-shell /usr/local/bin/chrome-headless-shell
+          chrome-headless-shell --version
+
       - name: Formatting
         working-directory: ${{ matrix.module }}
         run: |
