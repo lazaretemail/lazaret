@@ -54,8 +54,19 @@ ARG ORT_FLAVOR=cpu
 ARG ROCM_RELEASE
 ARG ORT_MIGRAPHX_WHEEL=onnxruntime_migraphx-1.23.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
 ARG TOKENIZERS_VERSION=v1.27.0
-ARG TARGETARCH=amd64
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip \
+# No default, and that is load-bearing.
+#
+# TARGETARCH is one of BuildKit's automatic build args, and giving it a default does not
+# provide a fallback — it *shadows* the value BuildKit would have supplied. Proven:
+# on a `--platform linux/arm64` build, `ARG TARGETARCH=amd64` yields amd64 while a bare
+# `ARG TARGETARCH` yields arm64.
+#
+# The symptom was a long way from the cause. This stage happily downloaded the amd64
+# tokenizer, the arm64 build stage linked against it, and the failure surfaced as
+# "skipping incompatible /native/lib/libtokenizers.a ... cannot find -ltokenizers" from
+# ld, several stages later.
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip binutils \
  && rm -rf /var/lib/apt/lists/*
 RUN set -eux; \
     case "$TARGETARCH" in \
@@ -87,7 +98,20 @@ RUN set -eux; \
     fi; \
     curl -fsSL -o /tmp/tok.tar.gz \
       "https://github.com/daulet/tokenizers/releases/download/${TOKENIZERS_VERSION}/libtokenizers.linux-${TOK_ARCH}.tar.gz"; \
-    tar -xzf /tmp/tok.tar.gz -C /native/lib
+    tar -xzf /tmp/tok.tar.gz -C /native/lib; \
+    # Check what was actually fetched rather than trusting the name it was fetched
+    # under. A mismatch here used to surface three stages later as an ld error about
+    # an incompatible archive, which says nothing about which arch was wrong or why.
+    case "$TARGETARCH" in \
+      amd64) want="x86-64" ;; \
+      arm64) want="aarch64" ;; \
+    esac; \
+    have="$(ar p /native/lib/libtokenizers.a $(ar t /native/lib/libtokenizers.a | head -1) > /tmp/probe.o && \
+            objdump -f /tmp/probe.o | sed -n "s/^architecture: \([^,]*\).*/\1/p")"; \
+    case "$have" in \
+      *"$want"*) : ;; \
+      *) echo "libtokenizers is $have, but this is a $TARGETARCH build wanting $want" >&2; exit 1 ;; \
+    esac
 
 # ---------------------------------------------------------------------------
 # Build

@@ -12,8 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -43,6 +43,26 @@ jobs:
 
       - run: go vet ./...
       - run: go build ./...
+
+      # The Office fixtures are generated, not committed, and the tests that read them
+      # fail rather than skip when they are absent — so this has to run before the
+      # tests, not alongside them.
+      #
+      # Generated because they are malicious-document shaped: a macro-bearing .docm and
+      # a CVE-2021-40444 reproduction are exactly what a scanner flags, and a public
+      # repository carrying them invites trouble it does not need. A generator is also
+      # a fixture somebody dares to change, which a checked-in blob is not.
+      #
+      # olefile is a real dependency, not a convenience: the Go reader is a
+      # reimplementation of the compound-file format, so the generator verifies every
+      # file it writes against the reference implementation. Testing a reimplementation
+      # against fixtures built by the same understanding would only prove the two agree
+      # with each other.
+      - name: Build the Office fixtures
+        run: |
+          python3 -m pip install --quiet --break-system-packages olefile
+          python3 oletools/testdata/generate.py
+
       - run: go test -race ./...
 
       # The compatibility claim is only worth making if CI measures it. The corpus is
@@ -76,23 +96,45 @@ jobs:
   yara:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
 
-      # YARA-X is a Rust library reached through cgo, so the tagged build needs it
-      # present. The core stays cgo-free precisely so that this is one job's problem
-      # rather than every contributor's.
+      # YARA-X is a Rust library reached through cgo, so the tagged build needs its C
+      # API present. The core stays cgo-free precisely so that this is one job's
+      # problem rather than every contributor's.
+      #
+      # Three things were wrong here and each hid the next.
+      #
+      # The install wrote straight to /usr/local, which the runner's user cannot create
+      # directories in: "failed to create directory /usr/local/lib/x86_64-linux-gnu —
+      # Permission denied". It is now built as the user, staged into a destdir and
+      # copied in with sudo, which is the ordinary way round — running cargo as root
+      # would rebuild every crate into root's registry.
+      #
+      # `A || B && C` binds as `(A || B) && C`, so the second cinstall ran whether or
+      # not the first had succeeded, and a genuine failure was indistinguishable from
+      # cargo-c simply not being installed yet. It is installed up front, once.
+      #
+      # yara-x-cli was installed and never used: nothing here shells out to `yr`, the
+      # binding links the C API. It cost several minutes a run to build a binary no
+      # test invokes.
       - name: Build YARA-X
         run: |
-          cargo install --locked yara-x-cli --version 1.20.0 || true
+          set -eux
+          cargo install --locked cargo-c
           git clone --depth 1 --branch v1.20.0 https://github.com/VirusTotal/yara-x /tmp/yara-x
-          cargo cinstall --release --prefix /usr/local --manifest-path /tmp/yara-x/capi/Cargo.toml \
-            || cargo install cargo-c && cargo cinstall --release --prefix /usr/local \
-               --manifest-path /tmp/yara-x/capi/Cargo.toml
+          cargo cinstall --release \
+            --prefix /usr/local --destdir /tmp/yara-x-staged \
+            --manifest-path /tmp/yara-x/capi/Cargo.toml
+          sudo cp -a /tmp/yara-x-staged/usr/local/. /usr/local/
           sudo ldconfig
+          # Fail here, where the message can say what is missing, rather than at link
+          # time where it says "cannot find -lyara_x_capi".
+          pkg-config --exists yara_x_capi \
+            || { echo "::error::yara_x_capi.pc was not installed"; exit 1; }
 
       - run: go build -tags yara ./...
       - run: go test -tags yara ./yara/...
@@ -105,8 +147,8 @@ jobs:
   strelka:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -160,8 +202,8 @@ jobs:
           - services/ingest
           - services/dashboard
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26'
           cache: true
@@ -170,7 +212,7 @@ jobs:
       # web/dist holding only the marker that keeps //go:embed compiling. That is
       # enough to build the binary; it is not enough to know the front end still
       # type-checks, which is what this does.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: matrix.module == 'services/dashboard'
         with:
           node-version: '24'

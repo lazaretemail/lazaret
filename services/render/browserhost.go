@@ -48,7 +48,11 @@ import (
 type browserHost struct {
 	name  string
 	flags []chromedp.ExecAllocatorOption
-	tabs  chan struct{}
+
+	// allocator is the running browser's allocator, kept so shutdown can wait for
+	// the process to exit rather than only signalling it.
+	allocator *chromedp.ExecAllocator
+	tabs      chan struct{}
 
 	mu          sync.Mutex
 	allocStop   context.CancelFunc
@@ -126,6 +130,12 @@ func (h *browserHost) ensure(ctx context.Context) (context.Context, uint64, erro
 	allocCtx, allocStop := chromedp.NewExecAllocator(context.Background(), h.flags...)
 	browserCtx, browserStop := chromedp.NewContext(allocCtx)
 
+	// Kept so shutdown can wait for the process rather than only ask it to go.
+	var allocator *chromedp.ExecAllocator
+	if c := chromedp.FromContext(allocCtx); c != nil {
+		allocator, _ = c.Allocator.(*chromedp.ExecAllocator)
+	}
+
 	// Force the browser to actually start now rather than on first use, so a
 	// failure to launch is reported here instead of inside somebody's render.
 	//
@@ -150,6 +160,7 @@ func (h *browserHost) ensure(ctx context.Context) (context.Context, uint64, erro
 	}
 
 	h.allocStop, h.browserStop, h.browser, h.browserOK = allocStop, browserStop, browserCtx, true
+	h.allocator = allocator
 	h.generation++
 	h.fails, h.jobs, h.retiring = 0, 0, false
 	log.Printf("lazaret-render: %s browser started (generation %d, up to %d tabs)",
@@ -157,6 +168,18 @@ func (h *browserHost) ensure(ctx context.Context) (context.Context, uint64, erro
 	return h.browser, h.generation, nil
 }
 
+// stopLocked shuts the browser down and waits for the process to be gone.
+//
+// The wait is the part that was missing, and it was not only a test annoyance.
+// Cancelling the allocator asks Chromium to exit; it does not wait for it. So whoever
+// deletes the profile directory afterwards — t.TempDir in the tests, browserHosts.Close
+// in the service — raced a process that was still writing to it, and both reported the
+// same thing: "directory not empty". The service leaked a profile directory per browser
+// per run because of it.
+//
+// Bounded, because a browser that will not die must not hold shutdown open forever. The
+// directory removal that follows may then still fail, which is the situation it was
+// already in.
 func (h *browserHost) stopLocked() {
 	if h.browserStop != nil {
 		h.browserStop()
@@ -164,9 +187,22 @@ func (h *browserHost) stopLocked() {
 	if h.allocStop != nil {
 		h.allocStop()
 	}
-	h.allocStop, h.browserStop, h.browser, h.browserOK = nil, nil, nil, false
+	if h.allocator != nil {
+		done := make(chan struct{})
+		go func() { defer close(done); h.allocator.Wait() }()
+		select {
+		case <-done:
+		case <-time.After(browserExitTimeout):
+			log.Printf("lazaret-render: the %s browser has not exited after %s; "+
+				"its profile directory may be left behind", h.name, browserExitTimeout)
+		}
+	}
+	h.allocStop, h.browserStop, h.browser, h.browserOK, h.allocator = nil, nil, nil, false, nil
 	h.fails, h.jobs, h.retiring = 0, 0, false
 }
+
+// browserExitTimeout bounds how long shutdown waits for a browser to actually go.
+const browserExitTimeout = 10 * time.Second
 
 // succeeded records that a browser is still doing useful work, and decides
 // whether it has done enough of it to be worth replacing.

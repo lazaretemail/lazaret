@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"os/exec"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -179,8 +181,24 @@ func needBrowser(t *testing.T) {
 func testHost(t *testing.T, extra ...chromedp.ExecAllocatorOption) *browserHost {
 	t.Helper()
 	needBrowser(t)
-	h := newBrowserHost("test", 4, append(baseFlags(t.TempDir()), extra...))
-	t.Cleanup(h.Close)
+
+	// Its own directory rather than t.TempDir, and removed best-effort.
+	//
+	// t.TempDir fails the test if anything is left behind, and Chromium leaves things
+	// behind: the host waits for the browser process, but its zygote and renderer
+	// children can briefly outlive it and are still writing into profile/Default when
+	// the removal walks it. That surfaced as "TempDir RemoveAll cleanup: directory not
+	// empty" on two tests whose own assertions had passed — a failure about the
+	// browser's file hygiene reported as a failure of what the test was checking.
+	dir, err := os.MkdirTemp("", "lazaret-render-test-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := newBrowserHost("test", 4, append(baseFlags(dir), extra...))
+	t.Cleanup(func() {
+		h.Close()
+		_ = os.RemoveAll(dir)
+	})
 	return h
 }
 
@@ -234,11 +252,26 @@ func TestBrowserHostTabsAreIsolated(t *testing.T) {
 	// The server reports what the *browser* sent, which is the only honest way to
 	// ask this. Reading document.cookie after a response that sets one tells you
 	// nothing — it shows the cookie from that very response.
-	var sentCookie atomic.Bool
+	//
+	// Attributed to the job that made the request, which the first version of this
+	// did not do, and it made the test accuse the code of a leak that was not there.
+	// A page load is not one request: Chromium fetches /favicon.ico afterwards, and
+	// that fetch carries the cookie the page has just set. With a single shared flag
+	// the first job's own favicon request looked exactly like the second job sending
+	// the first job's cookie.
+	var (
+		mu         sync.Mutex
+		phase      = "first"
+		sentInJob2 bool
+	)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := r.Cookie("seen"); err == nil {
-			sentCookie.Store(true)
+		_, err := r.Cookie("seen")
+		hasCookie := err == nil
+		mu.Lock()
+		if hasCookie && phase == "second" {
+			sentInJob2 = true
 		}
+		mu.Unlock()
 		fmt.Fprint(w, `<html><body><p id=x>ok</p></body></html>`)
 	}))
 	t.Cleanup(srv.Close)
@@ -256,6 +289,13 @@ func TestBrowserHostTabsAreIsolated(t *testing.T) {
 		t.Fatal("the first job could not set a cookie at all, so this proves nothing")
 	}
 
+	// Let the first job's own trailing requests land before anything is attributed
+	// to the second. Without this the test is a race against a favicon.
+	time.Sleep(750 * time.Millisecond)
+	mu.Lock()
+	phase = "second"
+	mu.Unlock()
+
 	// Second job: neither may reach it.
 	var storage, cookie string
 	if err := h.Do(ctx, 30*time.Second,
@@ -271,7 +311,12 @@ func TestBrowserHostTabsAreIsolated(t *testing.T) {
 	if cookie != "" {
 		t.Errorf("a cookie leaked between jobs: got %q", cookie)
 	}
-	if sentCookie.Load() {
+	// Its own trailing requests too, for the same reason.
+	time.Sleep(500 * time.Millisecond)
+	mu.Lock()
+	leaked := sentInJob2
+	mu.Unlock()
+	if leaked {
 		t.Error("the second job sent the first job's cookie to the server")
 	}
 }
