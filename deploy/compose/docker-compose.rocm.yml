@@ -1,0 +1,118 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Inference on an AMD GPU.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.rocm.yml up -d
+#
+# The zero-shot classifier is the slowest thing in an analysis by a wide margin: one
+# pass costs the number of candidate labels, not the length of the text, so it is
+# several seconds on a CPU whatever the message. It is also the single most
+# GPU-friendly piece of work in the whole platform — one batched transformer forward
+# pass — which makes this the difference between a message taking eight seconds and
+# taking one.
+#
+# Requires an image built with the ROCm runtime:
+#
+#   docker build -f services/ml/Dockerfile --target runtime-rocm \
+#     --build-arg TAGS=onnx --build-arg ORT_FLAVOR=rocm -t lazaret-ml:rocm .
+#
+# That is 14.8GB, because it carries precompiled GPU kernels for every AMD
+# architecture. Building for the card you actually have is much smaller — 6.9GB for a
+# single architecture — and `rocminfo | grep gfx` on the host says which:
+#
+#   ROCM_ARCHS=gfx1200 docker compose build ml
+#
+# ROCM_ARCHS is passed through by the build args below. Leave it unset and you get
+# every architecture, which is what the published image is.
+#
+# The default image carries the CPU-only ONNX Runtime, which refuses every GPU
+# execution provider — the accelerator probe reports exactly that, as "tried: [...
+# rocm]" with "provider: cpu", so a deployment that thinks it is using the GPU and
+# is not can see the difference.
+services:
+  ml:
+    image: lazaret-ml:rocm
+    build:
+      target: runtime-rocm
+      args:
+        TAGS: onnx
+        ORT_FLAVOR: rocm
+        # Empty keeps kernels for every AMD architecture. See the note above.
+        ROCM_ARCHS: "${ROCM_ARCHS:-}"
+    # Pin the provider rather than letting the probe choose. On a machine with a GPU
+    # this turns a silent fallback into a startup error in the log, which is what an
+    # operator who deliberately deployed this file wants to see.
+    # migraphx, not rocm. The ROCm execution provider was removed from ONNX Runtime
+    # in 1.23 and AMD's last build of it was ROCm 7.0; MIGraphX is its replacement
+    # and the one AMD actually publishes. Pinned rather than left to the probe so
+    # that a machine which was deployed with this file on purpose fails loudly in
+    # the log instead of quietly serving CPU inference at eight seconds a message.
+    command: ["-addr", ":8720", "-models", "/var/lib/lazaret/models", "-accelerator", "migraphx"]
+    devices:
+      # The kernel fusion driver and the render node. Both are needed: /dev/kfd is
+      # how ROCm submits work, /dev/dri/renderD* is the device itself.
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      # Numeric, and it has to be. Group *names* resolve inside the container, where
+      # "render" is some unrelated id — 109 in this base image against 991 on the
+      # host — so naming the group adds the container's group and the device stays
+      # unopenable. The symptom is not a permission error either: HIP reports "no
+      # ROCm-capable device is detected", which reads like a missing driver.
+      #
+      # Find yours with:  stat -c %g /dev/kfd
+      - "${RENDER_GID:?set RENDER_GID to the group owning /dev/kfd: stat -c %g /dev/kfd}"
+      - "${VIDEO_GID:-44}"
+    security_opt:
+      # ROCm's user-mode queues need this. Documented by AMD for their own images;
+      # it is a real loosening, and it is why this is an opt-in overlay rather than
+      # the default.
+      - seccomp:unconfined
+    ipc: host
+    environment:
+      # Keep the compiled graphs.
+      #
+      # MIGraphX compiles the model for the specific card and input shape the first
+      # time it sees them, and that compile is minutes, not seconds — two minutes
+      # for the first call on an RX 9060 XT, against a quarter of a second once it
+      # is cached. Without this the cost is paid again on every restart, which
+      # would make a routine redeploy look like an outage.
+      #
+      # The cache lands in the models volume because that is the one writable place
+      # that survives the container, and because a compiled graph belongs with the
+      # model it was compiled from.
+      # Names taken from the provider library's own strings, not from memory: an
+      # earlier guess at ORT_MIGRAPHX_SAVE_COMPILE_PATH silently did nothing, and
+      # "nothing happened" is indistinguishable from "it worked" until you redeploy
+      # and wait three minutes again.
+      ORT_MIGRAPHX_MODEL_CACHE_PATH: "/var/lib/lazaret/gpu-cache/migraphx"
+      ORT_MIGRAPHX_CACHE_PATH: "/var/lib/lazaret/gpu-cache/migraphx"
+      # MIGraphX and MIOpen write their own kernel caches under HOME; without a
+      # writable one they recompile kernels every run.
+      HOME: "/var/lib/lazaret/gpu-cache"
+      MIOPEN_USER_DB_PATH: "/var/lib/lazaret/gpu-cache/miopen"
+      MIOPEN_CUSTOM_CACHE_DIR: "/var/lib/lazaret/gpu-cache/miopen"
+
+    volumes:
+      # A writable place for compiled graphs, separate from the models mount.
+      #
+      # The models are mounted read-only and should stay that way: they are inputs,
+      # the service has no business rewriting them, and a compromised inference
+      # process should not be able to replace the weights it is asked to run. The
+      # compile cache is a different kind of thing — derived, regenerable, and
+      # written on every cold start — so it gets its own volume rather than an
+      # excuse to make the weights writable.
+      #
+      # Without this, MIGraphX compiles for three minutes and then fails to save,
+      # and the only sign is a line in the log that looks like a warning.
+      - ml-gpu-cache:/var/lib/lazaret/gpu-cache
+
+    # If ROCm does not recognise the card, set HSA_OVERRIDE_GFX_VERSION in the
+    # environment before starting — for example 11.0.0 to make an RDNA3 build serve
+    # an RDNA4 card. Deliberately not set here: an override that is wrong produces
+    # wrong arithmetic rather than an error, so it is the operator's decision.
+
+volumes:
+  # Named rather than a bind mount: nothing here is worth keeping in the repository
+  # and its contents are specific to one GPU model and driver version.
+  ml-gpu-cache:

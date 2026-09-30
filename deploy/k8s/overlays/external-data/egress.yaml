@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Egress for a database and a bucket store that live outside the cluster.
+#
+# Written as an explicit CIDR rather than by widening allow-internet-egress, because
+# that policy's exclusions are the thing stopping an SSRF in the engine from reaching
+# the cluster's own services or the node's metadata endpoint. Replace the block below
+# with the actual range your database and object store sit in — and keep it as narrow
+# as you can stand.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-data
+  namespace: lazaret
+spec:
+  podSelector:
+    matchLabels: {egress-data: "true"}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: {cidr: 10.100.0.0/16}
+      ports:
+        - {protocol: TCP, port: 5432}
+        - {protocol: TCP, port: 443}

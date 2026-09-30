@@ -1,0 +1,17 @@
+node_modules/
+
+# The compiled console is build output, not source: the Go binary embeds it and the
+# Docker build produces it in its own stage.
+#
+# `dist/*` rather than `dist/`, because git cannot re-include a file inside a
+# directory that has been excluded outright — and the marker below has to be tracked.
+# It keeps the directory present in a fresh clone so that `//go:embed all:web/dist`
+# still compiles; without it the build fails with "no matching files found" before
+# the console can explain that it simply has not been built yet.
+dist/*
+!dist/.gitkeep
+
+# vue-tsc's incremental-compile cache. Machine- and timestamp-specific, rewritten by
+# every build, and meaningless to anyone else — it was staged for the first public
+# commit purely because nothing had excluded it yet.
+*.tsbuildinfo

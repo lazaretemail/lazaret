@@ -1,0 +1,131 @@
+# Strelka, for file.explode.
+#
+# Not a fork and not a rewrite: Strelka is Apache-2.0 and Sublime runs it too, which is
+# why mdm.FileExplodeOutput is generated from its published response schema rather than
+# invented. This file pins a deployment; the scanners and their configuration are
+# upstream's.
+#
+# The frontend speaks gRPC on 57314, which is what the strelka package in this repository
+# connects to. The backend does the actual work and is where YARA signatures are loaded.
+#
+# Security note: the backend opens attacker-chosen files for a living. It belongs on an
+# isolated network with no egress, which is what the `analysis` network below is for —
+# only the frontend is reachable from the engine, and nothing here reaches the internet.
+
+# Runnable on its own — `docker compose -f third_party/strelka/docker-compose.yml up`
+# — and also pulled into the main stack with `include:`, which is how it is normally
+# started. Under include the parent project's name and networks win, which is the
+# point: the engine and the frontend end up on one network and can actually reach each
+# other. Run separately they land in their own project and the engine cannot, which is
+# a trap this file used to set for anyone who followed the README.
+name: lazaret-strelka
+
+services:
+  frontend:
+    image: target/strelka-frontend:latest
+    command: strelka-frontend
+    ports:
+      - "127.0.0.1:57314:57314"
+    depends_on:
+      - coordinator
+      - gatekeeper
+    # On both networks: reachable from the engine, and able to talk to the queue.
+    # The alias is what the engine dials. "frontend" alone is far too generic a name
+    # to claim in a shared namespace, and pinning it here means the engine's address
+    # does not change depending on how the stack was started.
+    networks:
+      edge: {}
+      analysis:
+        aliases: [strelka]
+    volumes:
+      - ./configs/frontend:/etc/strelka:ro
+    restart: unless-stopped
+
+  backend:
+    image: target/strelka-backend:latest
+    command: strelka-backend
+    # Upstream's backend.yaml points OpenTelemetry at a Jaeger that is not part of this
+    # deployment, and the exporter retries noisily. The config is vendored byte-identical
+    # to upstream, so the SDK is disabled out here instead of by editing it.
+    environment:
+      OTEL_SDK_DISABLED: "true"
+    depends_on:
+      - coordinator
+    # Some scanners (notably the archive and document ones) need more shared memory than
+    # Docker's 64MB default.
+    shm_size: 512mb
+    networks: [analysis]
+    volumes:
+      # The whole directory, as upstream mounts it. backend.yaml is one of eight files it
+      # expects to find under /etc/strelka — the others being the "taste" signatures that
+      # decide which scanners run, the TLSH family hashes, passwords.dat, and upstream's
+      # own YARA rules. Mounting single files instead shadows the rest with nothing, and
+      # the scanners that need them fail one at a time at scan time rather than at boot.
+      - ./configs/backend:/etc/strelka:ro
+      # Overlaid on the vendored backend.yaml. Keeping the upstream tree pristine and
+      # bind-mounting one file over it means `diff configs/backend/backend.yaml
+      # configs/lazaret/backend.yaml` is the complete list of Lazaret's deviations.
+      - ./configs/lazaret/backend.yaml:/etc/strelka/backend.yaml:ro
+      # Lazaret's YARA signatures, mounted over the vendored yara/ directory. Upstream
+      # ships a placeholder there (`rule test { condition: true }`) that matches every
+      # file, so replacing it wholesale is the point rather than a side effect. ScanYara
+      # compiles the directory recursively; it must not be empty.
+      - ./signatures:/etc/strelka/yara:ro
+    # Scanners are CPU-bound and run untrusted input; capping them keeps one hostile
+    # archive from starving the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+    restart: unless-stopped
+
+  # Expires stale entries the frontend leaves in the coordinator.
+  manager:
+    image: target/strelka-manager:latest
+    command: strelka-manager
+    depends_on:
+      - coordinator
+    networks: [analysis]
+    volumes:
+      - ./configs/manager:/etc/strelka:ro
+    restart: unless-stopped
+
+  # Strelka's work queue and its result cache.
+  #
+  # Garnet rather than Redis: Redis left open source in 2024 for SSPL, and although
+  # Redis 8 added AGPL back as an option, a single vendor that has already relicensed
+  # once is a dependency with a known failure mode. Garnet is MIT, from Microsoft
+  # Research, and speaks RESP — verified against this exact Strelka deployment for
+  # everything it needs: PING, RPUSH, BLPOP, LPOP, ZADD, EXPIRE and DEL.
+  #
+  # Valkey (BSD-3, Linux Foundation) is the drop-in alternative if you would rather have
+  # a literal Redis fork; swap the image and drop the --bind argument.
+  coordinator:
+    image: ghcr.io/microsoft/garnet:latest
+    command: ["--port", "6379", "--bind", "0.0.0.0"]
+    ulimits:
+      memlock: -1
+    networks: [analysis]
+    restart: unless-stopped
+
+  # A second instance, for the result cache. Strelka keeps them apart so that a full
+  # cache cannot evict queued work.
+  gatekeeper:
+    image: ghcr.io/microsoft/garnet:latest
+    command: ["--port", "6379", "--bind", "0.0.0.0"]
+    ulimits:
+      memlock: -1
+    networks: [analysis]
+    restart: unless-stopped
+
+networks:
+  # Reachable from the host, so the engine can connect to the frontend.
+  edge: {}
+
+  # No egress. The backend is the process that actually opens hostile files, so it lives
+  # only here: it can reach the queue and nothing else. `internal` also blocks published
+  # ports, which is why the frontend straddles both networks rather than everything
+  # sitting on this one.
+  analysis:
+    internal: true

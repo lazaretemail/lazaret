@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <!-- Replaced per request by the Go handler; see spa.go. CodeMirror builds its
+         stylesheet at runtime, and a nonce is how that is allowed without opening
+         style-src to every inline style on the page. -->
+    <meta name="csp-nonce" content="__CSP_NONCE__" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#131417" />
+    <title>Lazaret</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

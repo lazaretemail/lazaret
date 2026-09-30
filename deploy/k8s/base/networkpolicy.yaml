@@ -1,0 +1,107 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The `analysis` network, in Kubernetes terms.
+#
+# In compose this is one line — `internal: true` on a network — and it is doing more
+# work than its size suggests. It contains a renderer that has just executed hostile
+# HTML and an engine that has just parsed a hostile message. It also stops analysing a
+# message from telling its sender it was read, because remote images and tracking
+# pixels simply cannot load.
+#
+# Kubernetes has no such line, so it is spelled out: deny everything, then allow the
+# specific flows that exist. Pods that genuinely need the internet carry
+# `egress-internet: "true"` and are allowed out by name; everything else is not.
+#
+# **This requires a CNI that enforces NetworkPolicy.** Calico, Cilium and Antrea do.
+# Flannel on its own does not, and the policies below will be accepted by the API
+# server and quietly enforce nothing — which looks identical to working. Check with
+# `kubectl -n lazaret exec deploy/render -- wget -T3 -O- https://example.com`; it
+# should hang and fail.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: lazaret
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# DNS, for everyone. Without it nothing resolves its own siblings and every service
+# looks broken in a way that is hard to read.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: lazaret
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+# Traffic between the parts of this deployment. Scoped to the namespace, so nothing
+# in another one can reach the engine's API or Garage's S3 endpoint directly.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal
+  namespace: lazaret
+spec:
+  podSelector:
+    matchLabels: {tier: analysis}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {tier: analysis}}}]
+  egress:
+    - to: [{podSelector: {matchLabels: {tier: analysis}}}]
+---
+# The dashboard and, where the inline path is used, the Rspamd listener have to be
+# reachable from outside the namespace. Everything else is not.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-dashboard
+  namespace: lazaret
+spec:
+  podSelector:
+    matchLabels: {app: dashboard}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports: [{protocol: TCP, port: 8740}]
+---
+# Egress to the internet, for the pods that genuinely need it and no others.
+#
+# The engine needs it to download the ranked domain tables and the threat feeds, and
+# for RDAP. The ingest connector needs it to reach IMAP servers and Microsoft Graph.
+# The renderer does not, and that is the whole point of the section above.
+#
+# The private ranges are excluded so that "the internet" does not quietly include the
+# rest of the cluster, the node's own services, or a cloud metadata endpoint — which
+# is the usual way an SSRF turns into credentials.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internet-egress
+  namespace: lazaret
+spec:
+  podSelector:
+    matchLabels: {egress-internet: "true"}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16   # link-local, and the cloud metadata service
+              - 127.0.0.0/8

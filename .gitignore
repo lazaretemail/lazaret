@@ -1,0 +1,53 @@
+/bin/
+/dist/
+*.test
+*.out
+coverage.*
+.testdata-cache/
+go.work.sum
+testdata/
+
+# ...except the scanner fixtures, which are small, binary by necessity and needed for the
+# live tests to mean anything. The blanket rule above is for the sublime-rules corpus and
+# the static-files checkout, which are large and fetched rather than authored.
+!/strelka/testdata/
+!/strelka/testdata/**
+
+# Service binaries. `go build ./...` inside services/<name> writes one named after the
+# directory. There is no gitignore pattern for "an extensionless file", so these are
+# listed — and this list has now been wrong twice, each time because a new service was
+# added and its binary went in with the first commit. Adding a service means adding a
+# line here.
+/services/dashboard/dashboard
+/services/engine/engine
+/services/ingest/ingest
+/services/ml/ml
+/services/render/render
+
+# Local compose state. The .env holds generated secrets, rules/ is a checkout of
+# someone else's repository, and models/ is several hundred megabytes of weights
+# whose licence is not ours to redistribute.
+deploy/compose/.env
+# Fetched detection content: the Sublime corpus and any other feed an operator
+# configures. Cloned into place at runtime, replaced wholesale on every sync, and
+# under someone else's licence — so it is not ours to commit. Our own rules live in
+# content/rules/ and are tracked.
+deploy/compose/rules/
+deploy/compose/models/
+!deploy/compose/rules/.gitkeep
+!deploy/compose/models/.gitkeep
+
+# Editor and IDE state. Personal to whoever is working, and .idea in particular
+# carries local paths, datasource definitions and inspection profiles that mean
+# nothing to anyone else.
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# DuckDB writes a session marker next to the working directory when the database is
+# `:memory:`, and the filename contains a colon, which is its own small adventure on
+# a checkout. Nothing reads it; it is an artefact of having run the engine here.
+:memory:*
+*.ses

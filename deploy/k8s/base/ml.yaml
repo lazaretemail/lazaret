@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml
+  namespace: lazaret
+spec:
+  selector: {app: ml}
+  ports: [{name: http, port: 8720, targetPort: 8720}]
+---
+# Model weights.
+#
+# Empty is a valid state and the default one: no weights ship with this project,
+# because a model's licence is independent of this code and an AGPL image that bundles
+# them inherits whatever terms they came with. The capabilities that need one report
+# unavailable, the rules that wanted them report indeterminate, and the half of the
+# NLU classifier that needs no model — entities and language — keeps working.
+#
+# Populate it with the fetch-models Job below, once you have read the model card.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-models
+  namespace: lazaret
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      # The entailment model is about 740MB; the logo reference pack is a few
+      # megabytes. 4Gi leaves room to hold a second model while swapping.
+      storage: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml
+  namespace: lazaret
+spec:
+  # ReadWriteOnce on the model volume, so one replica. A cluster with RWX storage can
+  # raise this — inference is stateless and the sessions are serialised per process,
+  # so more replicas is the way to get more throughput.
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: ml}
+  template:
+    metadata:
+      labels: {app: ml, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        # The models volume is a PVC, and the pod has to be able to read what the
+        # fetch Job wrote into it.
+        fsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: ml
+          # The :onnx tag is the build with an inference runtime. The default tag has
+          # none — a deployment with no weights should not carry a 200MB native
+          # dependency to report every model-backed capability unavailable.
+          image: ghcr.io/lazaretemail/lazaret-ml:v0.1.0-onnx
+          args:
+            - "-addr=:8720"
+            - "-models=/var/lib/lazaret/models"
+            # Translation delegates to a self-hosted LibreTranslate. Empty sends
+            # nothing anywhere and still answers the case where the text is already
+            # in the target language, which is most of it in an English deployment.
+            - "-translate="
+            # Whether ml.nlu_classifier may report `benign` at high confidence.
+            #
+            # Off. `benign` is the one intent the rules use to *suppress*, so a wrong
+            # one does not raise a false alert, it silently stops a rule firing.
+            # Measured on the corpus samples, the model gets this wrong often enough
+            # to matter. Turn it on once you have measured your own mail.
+            #   - "-trust-benign-suppression"
+          ports: [{name: http, containerPort: 8720}]
+          volumeMounts:
+            - {name: models, mountPath: /var/lib/lazaret/models, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+          livenessProbe:
+            httpGet: {path: /v1/health, port: 8720}
+            periodSeconds: 20
+          startupProbe:
+            httpGet: {path: /v1/health, port: 8720}
+            # Loading a 740MB graph off a cold volume is not instant.
+            failureThreshold: 40
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: {path: /v1/health, port: 8720}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "500m", memory: "1Gi"}
+            # One forward pass per label, 44 labels, a 384-token window. CPU is the
+            # bound; give it more cores and the per-message latency falls.
+            limits: {cpu: "4", memory: "4Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true
+      volumes:
+        - {name: models, persistentVolumeClaim: {claimName: ml-models}}
+        - {name: tmp, emptyDir: {}}

@@ -1,0 +1,1250 @@
+{
+  "note": "Perceptual hashes of brand marks. No images: a 64-bit dHash is a fingerprint, not a copy. Regenerate with: lazaret-ml -hash-logos \u003cdir\u003e",
+  "source": "every logo Wikidata holds for each brand (P154 logo, P158 seal, P94 arms), rendered from Wikimedia Commons at 128/256/512px",
+  "entries": [
+    {
+      "brand": "Adobe",
+      "hash": "0159198a5a4a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "015919aa5a4a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "015919aa5a4a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "015979ca7a4a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "015979ca7a5a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "015979ea5a4a5a02"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "a62a5a5aada53535"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "a62a5a5ba5a53535"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "a6325253a5a53535"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "cb15d5e9caeaaa94"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "cb15d5e9caeaaa94"
+    },
+    {
+      "brand": "Adobe",
+      "hash": "cb15d5e9caeaba94"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "0000000000000000"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "0000000000000000"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "0000000000000000"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "061b11ec94cce58a"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "061b11ec94cce58a"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "061b11ec94cce59a"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "071b119d14446d9a"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "071b119d1c456d9a"
+    },
+    {
+      "brand": "Amazon",
+      "hash": "471b199d5444ed9a"
+    },
+    {
+      "brand": "An Post",
+      "hash": "b4ac3a646d0a0a05"
+    },
+    {
+      "brand": "An Post",
+      "hash": "b4ac3a646d0a0a05"
+    },
+    {
+      "brand": "Box",
+      "hash": "8936767692a80000"
+    },
+    {
+      "brand": "Box",
+      "hash": "89367676b2a80000"
+    },
+    {
+      "brand": "Box",
+      "hash": "89367676b2a80000"
+    },
+    {
+      "brand": "CISA",
+      "hash": "17099a39ab335d1f"
+    },
+    {
+      "brand": "Capital One Bank",
+      "hash": "18b2da565440667d"
+    },
+    {
+      "brand": "Capital One Bank",
+      "hash": "18b2da567c40667c"
+    },
+    {
+      "brand": "Capital One Bank",
+      "hash": "18b2db565440667c"
+    },
+    {
+      "brand": "Chase",
+      "hash": "c0aad65705c4bcc0"
+    },
+    {
+      "brand": "Chase",
+      "hash": "eaaad6170544bcea"
+    },
+    {
+      "brand": "Chase",
+      "hash": "eaaad6570544bcd8"
+    },
+    {
+      "brand": "Chronopost",
+      "hash": "20a8aaacb6800000"
+    },
+    {
+      "brand": "Chronopost",
+      "hash": "20a8aaacb6800000"
+    },
+    {
+      "brand": "Chronopost",
+      "hash": "20b8aaacb6800000"
+    },
+    {
+      "brand": "Coinbase",
+      "hash": "a89a5aaa86e60a0a"
+    },
+    {
+      "brand": "Coinbase",
+      "hash": "a89a5aaa96e60a0a"
+    },
+    {
+      "brand": "Coinbase",
+      "hash": "a89a5aaa96e64b4b"
+    },
+    {
+      "brand": "Correos",
+      "hash": "175bb2d2cf07170e"
+    },
+    {
+      "brand": "Correos",
+      "hash": "175bb2d2cf07170e"
+    },
+    {
+      "brand": "Correos",
+      "hash": "175bb2d2cf0f170e"
+    },
+    {
+      "brand": "DHL",
+      "hash": "08a033332b0f2b2b"
+    },
+    {
+      "brand": "DHL",
+      "hash": "49a833332b0f0b2b"
+    },
+    {
+      "brand": "DHL",
+      "hash": "49a833332b0f0b2b"
+    },
+    {
+      "brand": "DPD",
+      "hash": "30703098a4593658"
+    },
+    {
+      "brand": "DPD",
+      "hash": "30703098a4d93658"
+    },
+    {
+      "brand": "DPD",
+      "hash": "30703098a4d97658"
+    },
+    {
+      "brand": "Discord",
+      "hash": "5adab5b573519a9a"
+    },
+    {
+      "brand": "Discord",
+      "hash": "5adab5b57351da9a"
+    },
+    {
+      "brand": "Discord",
+      "hash": "8a9ab5b579dec880"
+    },
+    {
+      "brand": "Discord",
+      "hash": "9a9eb5b559dec880"
+    },
+    {
+      "brand": "Discord",
+      "hash": "9a9eb5b579ded880"
+    },
+    {
+      "brand": "Discord",
+      "hash": "d2dab5b573519a9a"
+    },
+    {
+      "brand": "Discord",
+      "hash": "dadab5b173519a9a"
+    },
+    {
+      "brand": "Discord",
+      "hash": "dadab5b573519a9a"
+    },
+    {
+      "brand": "Discord",
+      "hash": "dadab5b57351da9a"
+    },
+    {
+      "brand": "Disney",
+      "hash": "10d755cb422d0f05"
+    },
+    {
+      "brand": "Disney",
+      "hash": "10d75bcb422d0705"
+    },
+    {
+      "brand": "Disney",
+      "hash": "30aea93a2a180807"
+    },
+    {
+      "brand": "Disney",
+      "hash": "30afa93a2a180a07"
+    },
+    {
+      "brand": "Disney",
+      "hash": "30bfa93a2a180807"
+    },
+    {
+      "brand": "Disney",
+      "hash": "3f87a92a180d0c0c"
+    },
+    {
+      "brand": "Disney",
+      "hash": "3f87a92a180d0c0c"
+    },
+    {
+      "brand": "Disney",
+      "hash": "3f87a92a180d1c0c"
+    },
+    {
+      "brand": "Disney",
+      "hash": "59d755cb422d0f05"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "605e5ea999d51410"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "605e5ea999d51410"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "605e5ea9b9d51410"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "a0a82e72512c081a"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "a0a82e72512c081a"
+    },
+    {
+      "brand": "DocuSign",
+      "hash": "a0a82e72512c081a"
+    },
+    {
+      "brand": "Dropbox",
+      "hash": "11191d540e262000"
+    },
+    {
+      "brand": "Dropbox",
+      "hash": "11191d540e262000"
+    },
+    {
+      "brand": "Dropbox",
+      "hash": "11193d542e262000"
+    },
+    {
+      "brand": "E-ZPass",
+      "hash": "12169a2bad150505"
+    },
+    {
+      "brand": "E-ZPass",
+      "hash": "12169a2bb5158505"
+    },
+    {
+      "brand": "E-ZPass",
+      "hash": "12169a2bb5950545"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "40556a6aaaa39302"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "40556a6aaaa39302"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "40556a6aaaa39302"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "65672426262534b4"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "65672626262534b4"
+    },
+    {
+      "brand": "Ebay",
+      "hash": "65672626262534b4"
+    },
+    {
+      "brand": "FedEx",
+      "hash": "585805072306040c"
+    },
+    {
+      "brand": "FedEx",
+      "hash": "58580d072306040c"
+    },
+    {
+      "brand": "FedEx",
+      "hash": "58584d072306040c"
+    },
+    {
+      "brand": "GeekSquad",
+      "hash": "0f236cbba72d2307"
+    },
+    {
+      "brand": "GeekSquad",
+      "hash": "0f236cbba72d2307"
+    },
+    {
+      "brand": "Google",
+      "hash": "1010a17056366461"
+    },
+    {
+      "brand": "Google",
+      "hash": "1010a17256364461"
+    },
+    {
+      "brand": "Google",
+      "hash": "1010a17256364461"
+    },
+    {
+      "brand": "Google",
+      "hash": "181b5a535352a0a0"
+    },
+    {
+      "brand": "Google",
+      "hash": "181b5a535352b8a0"
+    },
+    {
+      "brand": "Google",
+      "hash": "181b5b535352a8a0"
+    },
+    {
+      "brand": "Google",
+      "hash": "3010a97252b66461"
+    },
+    {
+      "brand": "Google",
+      "hash": "3011a97256b66061"
+    },
+    {
+      "brand": "Google",
+      "hash": "3036a17256b64061"
+    },
+    {
+      "brand": "Google",
+      "hash": "3036a17256b64061"
+    },
+    {
+      "brand": "Google",
+      "hash": "3036a17256b64461"
+    },
+    {
+      "brand": "Google",
+      "hash": "30b5b55253a64041"
+    },
+    {
+      "brand": "Google",
+      "hash": "30b5b55253a65051"
+    },
+    {
+      "brand": "Google",
+      "hash": "30b9b15455b26841"
+    },
+    {
+      "brand": "Google",
+      "hash": "30b9b15455b26841"
+    },
+    {
+      "brand": "Google",
+      "hash": "30b9b15455b26841"
+    },
+    {
+      "brand": "Google",
+      "hash": "3111a97252b66061"
+    },
+    {
+      "brand": "Google",
+      "hash": "bab5b55253a66841"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44c4c8c8cc9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44c4cac8cc9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44c4cac8cc9c1810"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cc9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cc9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cc9c1810"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cc9c1810"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cc9c1810"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cccac8cd9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cceae8ec9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cceae8ec9c1010"
+    },
+    {
+      "brand": "Hulu",
+      "hash": "44cceae8ed9c1010"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "080da5d2d5f20202"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "080da5d2d5f60202"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181e6d495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "08181eed495d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "0818275a5ad4d202"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "0818275a5ad4da02"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "081f275a5ad4da02"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "089dc5d2d4f20202"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "18181e6d695d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "18181e6d695d1606"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "3ddcb2aaaa92c41f"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "3ddcb2aaaa92c41f"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "3ddcb2aaaa92c41f"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "75fcb2aaaa92d403"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "75fcb2aaaa92d403"
+    },
+    {
+      "brand": "Instagram",
+      "hash": "75fcb2aaaa92d403"
+    },
+    {
+      "brand": "La Poste",
+      "hash": "01030199b3030303"
+    },
+    {
+      "brand": "La Poste",
+      "hash": "01030199b3030303"
+    },
+    {
+      "brand": "La Poste",
+      "hash": "010301d9b3030303"
+    },
+    {
+      "brand": "MailChimp",
+      "hash": "8080a375d51d1c1c"
+    },
+    {
+      "brand": "MailChimp",
+      "hash": "808ba375d51d1c1c"
+    },
+    {
+      "brand": "MailChimp",
+      "hash": "80cba375d51d1c1c"
+    },
+    {
+      "brand": "McAfee",
+      "hash": "00ac2d153632b031"
+    },
+    {
+      "brand": "McAfee",
+      "hash": "00ac6d1577329035"
+    },
+    {
+      "brand": "Medicare",
+      "hash": "27729a6a6a414306"
+    },
+    {
+      "brand": "Medicare",
+      "hash": "2f729a6a6a51430e"
+    },
+    {
+      "brand": "Medicare",
+      "hash": "67729a6a6a41430e"
+    },
+    {
+      "brand": "Meta",
+      "hash": "46539185a4915266"
+    },
+    {
+      "brand": "Meta",
+      "hash": "46539185a4915266"
+    },
+    {
+      "brand": "Meta",
+      "hash": "47539984a4995266"
+    },
+    {
+      "brand": "Meta",
+      "hash": "d2d25d4dd5b54544"
+    },
+    {
+      "brand": "Meta",
+      "hash": "d2d25d4dd5f54544"
+    },
+    {
+      "brand": "Meta",
+      "hash": "f2d25d4dd5f54544"
+    },
+    {
+      "brand": "MetaMask",
+      "hash": "4d2b1717713171f0"
+    },
+    {
+      "brand": "MetaMask",
+      "hash": "4d2b1717713371f0"
+    },
+    {
+      "brand": "MetaMask",
+      "hash": "4d2b1717713371f0"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "00ac64349ca48400"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "00ac64349ca48400"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "00ac74349ca48400"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "2b094554554d49e7"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "2b0b4454554549e5"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "2b0b4d54554d49e7"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "48486a0b515153b7"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "48486a0b515153b7"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "48486a0b515553b7"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "4a2a281945c9d8c0"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "5a2a285125c9d9c1"
+    },
+    {
+      "brand": "Microsoft",
+      "hash": "5a2a285925c9d9c1"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "0701e1610d1f0f0e"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "09d149e969b51501"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "09d169e969b51501"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "09d169e969b51501"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "0f49e1610d1f0f0e"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "3337272e0c05070e"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "3337272e0c0d070e"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "9111d999dd343501"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "9191c999d9343501"
+    },
+    {
+      "brand": "Microsoft OneDrive",
+      "hash": "d1918999d9343549"
+    },
+    {
+      "brand": "Microsoft SharePoint",
+      "hash": "0c0f642c0e0c0f0e"
+    },
+    {
+      "brand": "Microsoft SharePoint",
+      "hash": "0c0f642c0e0c0f0e"
+    },
+    {
+      "brand": "Microsoft SharePoint",
+      "hash": "0c0f642c0e0c0f0e"
+    },
+    {
+      "brand": "Microsoft SharePoint",
+      "hash": "0e1674b607070707"
+    },
+    {
+      "brand": "NHS",
+      "hash": "8d8dadaca2cada9a"
+    },
+    {
+      "brand": "NHS",
+      "hash": "cd8dadaca2cada9a"
+    },
+    {
+      "brand": "NHS",
+      "hash": "cd8dadaca2cada9a"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "0149aeae969a4749"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "1151aea6969a4511"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "4949aeae969a4549"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "f022ccccc8ccc457"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "f032d4ccc8ccd457"
+    },
+    {
+      "brand": "Netflix",
+      "hash": "f032d4dcc8ccd457"
+    },
+    {
+      "brand": "Norton",
+      "hash": "012c6f55551f1d10"
+    },
+    {
+      "brand": "Norton",
+      "hash": "012c6f55551f1d11"
+    },
+    {
+      "brand": "Norton",
+      "hash": "3355555554aa9818"
+    },
+    {
+      "brand": "Norton",
+      "hash": "3355555554aa9818"
+    },
+    {
+      "brand": "Norton",
+      "hash": "3355555554aa9818"
+    },
+    {
+      "brand": "Norton",
+      "hash": "4d5972355555bc18"
+    },
+    {
+      "brand": "Norton",
+      "hash": "4d5972355555bc18"
+    },
+    {
+      "brand": "Norton",
+      "hash": "4d597235555dbc18"
+    },
+    {
+      "brand": "Norton",
+      "hash": "a14ecddda5e3ab13"
+    },
+    {
+      "brand": "Norton",
+      "hash": "c14ecddda5a3eb2b"
+    },
+    {
+      "brand": "Norton",
+      "hash": "e14ecddda5a32be3"
+    },
+    {
+      "brand": "Okta",
+      "hash": "0101ea1a1aaa1111"
+    },
+    {
+      "brand": "Okta",
+      "hash": "0101ea1a1aaa1111"
+    },
+    {
+      "brand": "Okta",
+      "hash": "49c9ea1a1aea1911"
+    },
+    {
+      "brand": "PNC",
+      "hash": "01b536352c5ed581"
+    },
+    {
+      "brand": "PNC",
+      "hash": "01b536352c5ed5c1"
+    },
+    {
+      "brand": "PNC",
+      "hash": "81b536352c5ed501"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "04252266524b19d8"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "04252266524b19d8"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "04252266524b19d8"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "04465aca9c739090"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "04475aca9c739090"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "066a6c6d2bcda399"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "066a6c6d2bcda399"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "066a6c6d2bcda399"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "10ca9a846424a400"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "10ca9a9464a4a400"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "10ca9e946424a400"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "185ccadeb666a2a2"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "185ccadeb66ea2a2"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "185ecad6b66ea2a2"
+    },
+    {
+      "brand": "PayPal",
+      "hash": "45475aca9c739890"
+    },
+    {
+      "brand": "PostNL",
+      "hash": "030d39c9dd390903"
+    },
+    {
+      "brand": "PostNL",
+      "hash": "030d39c9dd390903"
+    },
+    {
+      "brand": "PostNL",
+      "hash": "0538608996663605"
+    },
+    {
+      "brand": "PostNL",
+      "hash": "0538608996663605"
+    },
+    {
+      "brand": "PostNL",
+      "hash": "0538608996663605"
+    },
+    {
+      "brand": "PostNord",
+      "hash": "00a6b4d5dbeea6c5"
+    },
+    {
+      "brand": "PostNord",
+      "hash": "00a6b6d553eaa684"
+    },
+    {
+      "brand": "PostNord",
+      "hash": "00b6b6d553eaa684"
+    },
+    {
+      "brand": "Poste Italiane",
+      "hash": "6070302321397060"
+    },
+    {
+      "brand": "Poste Italiane",
+      "hash": "6070382321317060"
+    },
+    {
+      "brand": "Poste Italiane",
+      "hash": "6070392321397060"
+    },
+    {
+      "brand": "Quickbooks",
+      "hash": "0337355959090c15"
+    },
+    {
+      "brand": "Quickbooks",
+      "hash": "03672d5959090c15"
+    },
+    {
+      "brand": "SSA",
+      "hash": "074d8c9c4d33711b"
+    },
+    {
+      "brand": "SSA",
+      "hash": "074d94944d33711b"
+    },
+    {
+      "brand": "SSA",
+      "hash": "174d9c944d33710b"
+    },
+    {
+      "brand": "Shein",
+      "hash": "1aa8a9eacaeaaa9a"
+    },
+    {
+      "brand": "Shein",
+      "hash": "1eaea5aacae6ae9e"
+    },
+    {
+      "brand": "Shein",
+      "hash": "1eaea5eacae6ee9e"
+    },
+    {
+      "brand": "Slack",
+      "hash": "01545599b4554d49"
+    },
+    {
+      "brand": "Slack",
+      "hash": "0154559db4554949"
+    },
+    {
+      "brand": "Slack",
+      "hash": "0154559fb4554d49"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "01c90a2a68666101"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "01c90a3a68626101"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "01c90a3a68626101"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "c5b5a42478716501"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "c5b5a52478716501"
+    },
+    {
+      "brand": "Spotify",
+      "hash": "c5b5a52478716501"
+    },
+    {
+      "brand": "Square",
+      "hash": "09ac2aa56da20401"
+    },
+    {
+      "brand": "Square",
+      "hash": "09ac2aa56da20401"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "111160494b0f7f71"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "1111605501137751"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "1111605b4b0b3371"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "1f1d1d1cdcdd5d1f"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "1f1d1d1cdcdd5d1f"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "2424604d4b0f7f64"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "2424605b4b0b3364"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "242464494b0f7f64"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "2424645501137764"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "2424645509137764"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "2424685b4b0b3364"
+    },
+    {
+      "brand": "Swiss Post",
+      "hash": "9f9f1d1cdcdd5f1f"
+    },
+    {
+      "brand": "TD Bank",
+      "hash": "0002aaba2a4aca00"
+    },
+    {
+      "brand": "Threads",
+      "hash": "0369d4ea66d46903"
+    },
+    {
+      "brand": "Threads",
+      "hash": "0369d4eae6d46903"
+    },
+    {
+      "brand": "Threads",
+      "hash": "0369d4eae6d46903"
+    },
+    {
+      "brand": "Threads",
+      "hash": "176954363c9dc10f"
+    },
+    {
+      "brand": "Threads",
+      "hash": "176954363c9dc10f"
+    },
+    {
+      "brand": "Threads",
+      "hash": "176954363c9dc10f"
+    },
+    {
+      "brand": "Threads",
+      "hash": "1769d4363c946917"
+    },
+    {
+      "brand": "Threads",
+      "hash": "1769d4363c946917"
+    },
+    {
+      "brand": "Threads",
+      "hash": "1769d4363e946917"
+    },
+    {
+      "brand": "TikTok",
+      "hash": "a2224a4a2aa64848"
+    },
+    {
+      "brand": "TikTok",
+      "hash": "a2224a4a6aa64848"
+    },
+    {
+      "brand": "TikTok",
+      "hash": "a2224a4a6aa64848"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b11ae6a377e3f"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b11ae6a377e3f"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b11ae6a377e3f"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b11ae6c355f3f"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b11ae6e373f3f"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f1b9aaded313131"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f3b9aadcd313131"
+    },
+    {
+      "brand": "UPS",
+      "hash": "0f3b9aadcd313131"
+    },
+    {
+      "brand": "US Dept of Education",
+      "hash": "0f0d4db6920f490f"
+    },
+    {
+      "brand": "US Dept of Education",
+      "hash": "0f0f4db6120f490f"
+    },
+    {
+      "brand": "US Dept of Education",
+      "hash": "0f0f4db6920f490f"
+    },
+    {
+      "brand": "USCIS",
+      "hash": "110d21b589555541"
+    },
+    {
+      "brand": "USCIS",
+      "hash": "150d21b589555541"
+    },
+    {
+      "brand": "USCIS",
+      "hash": "150d21b5a9715541"
+    },
+    {
+      "brand": "USPS",
+      "hash": "a5212ca802746369"
+    },
+    {
+      "brand": "USPS",
+      "hash": "a5216ca842646369"
+    },
+    {
+      "brand": "USPS",
+      "hash": "a5216ca87a746369"
+    },
+    {
+      "brand": "X",
+      "hash": "0307030303191938"
+    },
+    {
+      "brand": "X",
+      "hash": "0307171717591938"
+    },
+    {
+      "brand": "X",
+      "hash": "0307171717591938"
+    },
+    {
+      "brand": "X",
+      "hash": "30592b16160b2563"
+    },
+    {
+      "brand": "X",
+      "hash": "30592b16160b2563"
+    },
+    {
+      "brand": "X",
+      "hash": "30592b16160b2563"
+    },
+    {
+      "brand": "X",
+      "hash": "715b2716161b3561"
+    },
+    {
+      "brand": "X",
+      "hash": "715b2716161b3561"
+    },
+    {
+      "brand": "X",
+      "hash": "715b2716161b3561"
+    },
+    {
+      "brand": "Zoom",
+      "hash": "9112062625657130"
+    },
+    {
+      "brand": "Zoom",
+      "hash": "911a0e2e2d6d5930"
+    },
+    {
+      "brand": "Zoom",
+      "hash": "999286a625657138"
+    }
+  ]
+}

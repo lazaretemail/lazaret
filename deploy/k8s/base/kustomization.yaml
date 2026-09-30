@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: lazaret
+
+resources:
+  - namespace.yaml
+  - config.yaml
+  - networkpolicy.yaml
+  - postgres.yaml
+  - garage.yaml
+  - garnet.yaml
+  - engine.yaml
+  - dashboard.yaml
+  - render.yaml
+  - ml.yaml
+  - ingest.yaml
+  - ingress.yaml
+
+# Deliberately not in `resources`:
+#
+#   secrets.example.yaml    a template to copy, never a thing to apply
+#   garage-bootstrap.yaml   run once, by hand, and it prints credentials
+#   ml-fetch-models.yaml    downloading model weights is a licensing decision
+#
+# Each is applied with `kubectl create -f` when its moment comes. A Job in a
+# kustomization re-runs on every apply, which for the bootstrap means regenerating
+# nothing and for the model fetch means a 740MB download.
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: lazaret
+
+# Pinned, and deliberately not `latest`.
+#
+# Two reasons. An unpinned tag means you cannot say what is running, which for a
+# platform that quarantines mail is the first question after anything goes wrong. And
+# Kubernetes defaults imagePullPolicy to Always for `latest`, so a locally built or
+# air-gapped image is ignored in favour of a registry pull that fails — which is a
+# confusing way to discover a policy default.
+images:
+  - name: ghcr.io/lazaretemail/lazaret-engine
+    newTag: v0.1.0
+  - name: ghcr.io/lazaretemail/lazaret-dashboard
+    newTag: v0.1.0
+  - name: ghcr.io/lazaretemail/lazaret-render
+    newTag: v0.1.0
+  - name: ghcr.io/lazaretemail/lazaret-ml
+    newTag: v0.1.0-onnx
+  - name: ghcr.io/lazaretemail/lazaret-ingest
+    newTag: v0.1.0

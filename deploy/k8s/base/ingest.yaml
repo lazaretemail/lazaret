@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Where mail comes from, and what is done about it.
+#
+# Zero replicas by default. Every other service here is inert until mail arrives;
+# this one reaches into mailboxes and, once a mailbox has remediation enabled, deletes
+# from them. Starting it should be a decision, and it needs a service token that does
+# not exist until the engine has been signed into at least once.
+#
+#   kubectl -n lazaret scale deployment/ingest --replicas=1
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingest
+  namespace: lazaret
+spec:
+  selector: {app: ingest}
+  ports:
+    - {name: rspamd, port: 8730, targetPort: 8730}
+    - {name: graph, port: 8731, targetPort: 8731}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingest
+  namespace: lazaret
+spec:
+  replicas: 0
+  # One connector per mailbox, and IMAP IDLE holds a connection open. Two replicas
+  # would both watch every mailbox and both analyse every message — the engine
+  # deduplicates on ingest, so it is wasteful rather than wrong, but it doubles the
+  # load for nothing.
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: ingest}
+  template:
+    metadata:
+      # Needs the internet: IMAP servers and Microsoft Graph are not in the cluster.
+      labels: {app: ingest, tier: analysis, egress-internet: "true"}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: ingest
+          image: ghcr.io/lazaretemail/lazaret-ingest:v0.1.0
+          args:
+            # Managed: the mailbox list comes from the engine, where an administrator
+            # adds them on the dashboard, so a new inbox is not a redeploy. The
+            # supervisor reconciles on a timer — starting what is new, stopping what
+            # was removed, restarting what changed, including a rotated password.
+            - "-managed"
+            - "-reconcile-every=1m"
+            # The inline path, which is the only placement where a verdict can stop a
+            # message reaching a mailbox at all. Uncomment and point Rspamd's
+            # lua/lazaret.lua at this service.
+            #- "-rspamd-addr=:8730"
+            # Microsoft 365. The application registration belongs to the deployment
+            # rather than to any one mailbox, so it lives here; the mailboxes
+            # themselves are added in the dashboard.
+            #- "-graph-addr=:8731"
+            #- "-graph-notify-url=https://lazaret.example.com/graph/notify"
+          env:
+            - {name: LAZARET_ENGINE, value: "http://engine:8700"}
+            - {name: LAZARET_TENANT, valueFrom: {configMapKeyRef: {name: lazaret, key: LAZARET_TENANT}}}
+          envFrom:
+            - secretRef: {name: lazaret-ingest}
+          ports:
+            - {name: rspamd, containerPort: 8730}
+            - {name: graph, containerPort: 8731}
+          resources:
+            requests: {cpu: "100m", memory: "128Mi"}
+            limits: {memory: "512Mi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true

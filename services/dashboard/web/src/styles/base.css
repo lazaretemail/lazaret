@@ -1,0 +1,228 @@
+/* SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Design tokens and primitives. Component-specific rules live in the component's own
+ * <style scoped> block, which Vite extracts to a static stylesheet at build time —
+ * nothing is injected at runtime, so `style-src 'self'` holds without unsafe-inline.
+ */
+
+:root {
+  /* Brand ground and type. Ink, Slate and Paper come from the identity; the greys
+     between them are the ones its own boards use for secondary and tertiary text. */
+  --bg: #131417;          /* Ink */
+  --panel: #1a1e24;
+  --panel-2: #232a33;     /* Slate */
+  --line: #2c333d;
+  --line-soft: #22282f;
+  --fg: #f4f2ed;          /* Paper */
+  --dim: #9ba1a9;
+  --faint: #71777f;
+
+  /* Amber is the identity's one accent, and it means a specific thing: held,
+     flagged, needs a human. It is fixed rather than themed, because a flag that
+     changes colour with the surface has stopped being a flag. --unknown is the
+     *text* form of the same idea, darkened on paper where saturated amber cannot
+     reach 4.5:1. */
+  --amber: #f0a32a;
+  --unknown: #f0a32a;
+
+  /* Red and green are an extension: the identity has four colours and a triage
+     queue needs to separate malicious from clean at a glance. */
+  --bad: #ff6b6b;
+  --ok: #5ec98a;
+
+  /* Links are the body colour, not amber. The identity reserves amber for "held,
+     flagged, needs a human", and a triage table is mostly links: colouring every
+     subject amber left the amber that actually means something indistinguishable
+     from the amber that just means "this is clickable". Amber stays for the flagged
+     states, the focus ring and the one primary action on a page. */
+  --link: #f4f2ed;
+  --link-hover: #ffc161;
+  --accent: #f0a32a;
+
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: 'Space Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --r: 6px;
+  --sidebar: 232px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.22);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f2ed;        /* Paper */
+    --panel: #ffffff;
+    --panel-2: #edeae2;
+    --line: #ddd9d0;
+    --line-soft: #e8e5de;
+    --fg: #131417;        /* Ink */
+    --dim: #4a4f57;
+    --faint: #6c7078;
+
+    /* The diamond keeps full-strength amber; amber *text* does not pass contrast on
+       paper, so it darkens — the value the identity's own light boards use. */
+    --amber: #f0a32a;
+    --unknown: #8a5e00;
+
+    --bad: #c02727;
+    --ok: #177245;
+
+    --link: #131417;
+    --link-hover: #8a5e00;
+    --accent: #8a5e00;
+
+    --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 8px 24px rgb(16 24 40 / 0.08);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14.5px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { color: var(--link-hover); }
+
+/* Links in page content share the body colour now that amber is reserved, so they
+   need the underline to be findable. Navigation does not: it is a list of links in
+   a sidebar, and underlining all of it is just noise. */
+main a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 28%, transparent);
+  text-underline-offset: 2px;
+}
+main a:hover { text-decoration-color: currentColor; }
+
+h1 { font-size: 1.35rem; margin: 0 0 .25rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1rem; margin: 1.75rem 0 .5rem; font-weight: 600; }
+h3 { font-size: .9rem; margin: 1.25rem 0 .4rem; font-weight: 600; color: var(--dim); }
+
+p { margin: .4rem 0; }
+
+.dim { color: var(--dim); }
+.faint { color: var(--faint); }
+.mono { font-family: var(--mono); font-size: .86em; }
+.nowrap { white-space: nowrap; }
+.right { text-align: right; }
+.grow { flex: 1; }
+.stack { display: flex; flex-direction: column; gap: .75rem; }
+.row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.spread { display: flex; gap: 1rem; align-items: baseline; justify-content: space-between; }
+
+/* ---- form controls ---------------------------------------------------- */
+
+input, select, textarea, button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: .38rem .55rem;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible,
+a:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+input::placeholder, textarea::placeholder { color: var(--faint); }
+textarea { width: 100%; font-family: var(--mono); font-size: .88em; resize: vertical; }
+label { font-size: .82rem; color: var(--dim); display: block; margin-bottom: .2rem; }
+
+button { cursor: pointer; border-color: var(--line); }
+button:hover:not(:disabled) { background: var(--panel-2); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+button.primary { border-color: var(--accent); color: var(--accent); }
+button.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+button.danger { border-color: var(--bad); color: var(--bad); }
+button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+button.link {
+  background: none; border: none; padding: 0; color: var(--link); text-decoration: underline;
+}
+button.link:hover { background: none; }
+
+/* ---- surfaces --------------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 1rem 1.1rem;
+}
+
+.note, .err, .warn {
+  border-radius: var(--r);
+  padding: .65rem .85rem;
+  border: 1px solid;
+  font-size: .9rem;
+}
+.err  { color: var(--bad);     border-color: var(--bad);     background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.warn { color: var(--unknown); border-color: var(--unknown); background: color-mix(in srgb, var(--unknown) 10%, transparent); }
+.note { color: var(--ok);      border-color: var(--ok);      background: color-mix(in srgb, var(--ok) 10%, transparent); }
+
+.empty { color: var(--dim); padding: 2.5rem 0; text-align: center; }
+
+/* ---- tags ------------------------------------------------------------- */
+
+.tag {
+  display: inline-block; font-size: .73rem; line-height: 1.5;
+  padding: 0 .4rem; border-radius: 3px; border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.tag.bad { color: var(--bad); }
+.tag.unknown { color: var(--unknown); }
+.tag.ok { color: var(--ok); }
+.tag.act { color: var(--link); }
+.tag.mute { color: var(--faint); }
+
+.sev-critical, .sev-high { color: var(--bad); }
+.sev-medium { color: var(--unknown); }
+.sev-low { color: var(--dim); }
+
+/* ---- tables ----------------------------------------------------------- */
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--dim); font-weight: 600; padding: .45rem .6rem;
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+td { padding: .5rem .6rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tbody tr:hover { background: var(--panel); }
+
+/* ---- definition grid -------------------------------------------------- */
+
+.summary { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; }
+.summary dt { color: var(--dim); font-size: .84rem; }
+.summary dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+/* ---- utility ---------------------------------------------------------- */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ---- wordmark ----------------------------------------------------------
+ *
+ * Lowercase Space Grotesk Bold at -3.5% tracking, per the identity. Only the
+ * wordmark gets this; it is never set in anything else.
+ */
+.wordmark {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.8;
+  text-transform: lowercase;
+  color: var(--fg);
+}

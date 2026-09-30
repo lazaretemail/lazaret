@@ -1,0 +1,144 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# A fresh Garage does nothing until it has a layout, and holds nothing until it has a
+# key and buckets. The failure mode without this is an engine that starts, reports
+# custody unwritable, and refuses every quarantine — safe, and silent unless somebody
+# looks.
+#
+#   kubectl -n lazaret create -f garage-bootstrap.yaml
+#   kubectl -n lazaret logs -f job/garage-bootstrap
+#
+# It prints the access key and secret. Put them in the lazaret-engine secret and
+# restart the engine; they are not written there automatically, because a Job that can
+# write Secrets needs RBAC to do it, and that is a larger standing grant than typing
+# two values once.
+#
+# # Why the admin API and not the garage CLI
+#
+# The CLI reads the node key out of the metadata directory, so it can only administer
+# the node it is running beside — `garage status` from another pod fails with "Unable
+# to read node key", whatever you pass for -h. The admin API on :3903 is the interface
+# meant for this, and it needs only the token already in the config.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-bootstrap
+  namespace: lazaret
+spec:
+  backoffLimit: 3
+  # Kept after it finishes, so the printed credentials survive long enough to be
+  # copied. An hour, then it cleans itself up rather than leaving keys in the log of
+  # a pod nobody remembers.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: {app: garage-bootstrap, tier: analysis}
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: bootstrap
+          image: curlimages/curl:8.11.1
+          env:
+            - {name: ADMIN, value: "http://garage:3903"}
+            - {name: TOKEN, valueFrom: {secretKeyRef: {name: lazaret-garage, key: GARAGE_ADMIN_TOKEN}}}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              A="curl -sS -f -H Authorization:Bearer${IFS}$TOKEN"
+
+              echo "waiting for garage..."
+              i=0
+              until curl -sSf -H "Authorization: Bearer $TOKEN" "$ADMIN/v1/status" >/dev/null 2>&1; do
+                i=$((i + 1))
+                [ "$i" -gt 60 ] && { echo "garage did not answer on $ADMIN"; exit 1; }
+                sleep 2
+              done
+
+              STATUS=$(curl -sSf -H "Authorization: Bearer $TOKEN" "$ADMIN/v1/status")
+              NODE=$(echo "$STATUS" | sed -n 's/.*"node": *"\([^"]*\)".*/\1/p' | head -1)
+              LAYOUT=$(echo "$STATUS" | sed -n 's/.*"layoutVersion": *\([0-9]*\).*/\1/p' | head -1)
+              echo "node $NODE, layout version ${LAYOUT:-0}"
+
+              # A node with no role stores nothing. Assigning one is what turns a
+              # running Garage into a usable one; skipped if it already has.
+              if [ "${LAYOUT:-0}" = "0" ]; then
+                echo "assigning layout"
+                curl -sSf -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+                  -d "[{\"id\":\"$NODE\",\"zone\":\"dc1\",\"capacity\":107374182400,\"tags\":[]}]" \
+                  "$ADMIN/v1/layout" >/dev/null
+                curl -sSf -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+                  -d '{"version":1}' "$ADMIN/v1/layout/apply" >/dev/null
+                echo "layout applied"
+              else
+                echo "layout already assigned"
+              fi
+
+              # Two buckets, not one. DuckLake owns the corpus prefix and rewrites and
+              # expires it during compaction; custody holds the only remaining copy of
+              # every quarantined message. Sharing a prefix would let a compaction
+              # remove mail under legal hold.
+              # Look before creating. Garage allows two keys with the same name, so
+              # POSTing unconditionally means every re-run of this job mints another
+              # credential that is never revoked — and a security platform that
+              # accumulates live access keys each time someone re-applies a manifest
+              # is not one to hand to an auditor.
+              # Flattened before splitting, because the API pretty-prints and grep is
+              # line-based: without this the "id" and "name" lines never meet and the
+              # match silently finds nothing, which looks exactly like "no key yet".
+              KID=$(curl -sSf -H "Authorization: Bearer $TOKEN" "$ADMIN/v1/key?list" \
+                | tr -d '\n ' | tr '}' '\n' \
+                | grep '"name":"lazaret"' \
+                | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | head -1)
+              SECRET=""
+              if [ -z "$KID" ]; then
+                KEYJSON=$(curl -sSf -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+                  -d '{"name":"lazaret"}' "$ADMIN/v1/key")
+                KID=$(echo "$KEYJSON" | sed -n 's/.*"accessKeyId": *"\([^"]*\)".*/\1/p' | head -1)
+                SECRET=$(echo "$KEYJSON" | sed -n 's/.*"secretAccessKey": *"\([^"]*\)".*/\1/p' | head -1)
+                echo "created access key $KID"
+              else
+                echo "reusing existing access key $KID"
+              fi
+
+              for b in lazaret-corpus lazaret-custody; do
+                BID=$(curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+                  -d "{\"globalAlias\":\"$b\"}" "$ADMIN/v1/bucket" \
+                  | sed -n 's/.*"id": *"\([^"]*\)".*/\1/p' | head -1)
+                if [ -z "$BID" ]; then
+                  # Already exists: find it by alias rather than failing.
+                  BID=$(curl -sSf -H "Authorization: Bearer $TOKEN" "$ADMIN/v1/bucket?globalAlias=$b" \
+                    | sed -n 's/.*"id": *"\([^"]*\)".*/\1/p' | head -1)
+                fi
+                curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+                  -d "{\"bucketId\":\"$BID\",\"accessKeyId\":\"$KID\",\"permissions\":{\"read\":true,\"write\":true,\"owner\":true}}" \
+                  "$ADMIN/v1/bucket/allow" >/dev/null || true
+                echo "bucket $b ready"
+              done
+
+              echo
+              if [ -n "$SECRET" ]; then
+                echo "==================== S3 credentials ===================="
+                echo "  LAZARET_S3_KEY=$KID"
+                echo "  LAZARET_S3_SECRET=$SECRET"
+                echo "======================================================="
+                echo
+                echo "kubectl -n lazaret patch secret lazaret-engine --type merge \\"
+                echo "  -p '{\"stringData\":{\"LAZARET_S3_KEY\":\"$KID\",\"LAZARET_S3_SECRET\":\"$SECRET\"}}'"
+                echo "kubectl -n lazaret rollout restart deployment/engine"
+              else
+                echo "Access key $KID already existed, and its secret is only ever shown at"
+                echo "creation. If you no longer have it, delete that key and re-run:"
+                echo "  curl -X DELETE -H \"Authorization: Bearer \$TOKEN\" $ADMIN/v1/key?id=$KID"
+              fi
+          resources:
+            requests: {cpu: "50m", memory: "64Mi"}
+            limits: {memory: "256Mi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true

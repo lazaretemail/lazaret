@@ -1,0 +1,5 @@
+coordinator:
+  addr: 'coordinator:6379'
+  db: 0
+  pool: 100
+  read: 10s

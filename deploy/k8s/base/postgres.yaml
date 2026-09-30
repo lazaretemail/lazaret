@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Relational state *and* the DuckLake catalog. One database doing two jobs, which is
+# the reason DuckLake was chosen over a format whose catalog is a tree of files in
+# object storage.
+#
+# A single Postgres, which is what makes this a starting point rather than a
+# production database. It holds the rules, the tenants, the users, the audit log, the
+# materialised profiles and the catalog that makes the corpus readable at all — so
+# for anything real, use an operator (CloudNativePG, Zalando) or a managed instance
+# and point the engine at it with the external-data overlay.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: lazaret
+spec:
+  selector: {app: postgres}
+  ports: [{name: postgres, port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: lazaret
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # 70 on Alpine, where this image's postgres user lives. The Debian-based
+        # postgres images use 999, and getting it wrong leaves initdb unable to write
+        # the PVC — a crash loop whose message blames permissions on a path you did
+        # not choose.
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - {name: POSTGRES_USER, value: lazaret}
+            - {name: POSTGRES_DB, value: lazaret}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: lazaret-postgres, key: POSTGRES_PASSWORD}}
+            # The image refuses to initialise into a non-empty mount point, and a PVC
+            # arrives with lost+found on many storage classes.
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+          ports: [{name: postgres, containerPort: 5432}]
+          volumeMounts: [{name: data, mountPath: /var/lib/postgresql/data}]
+          readinessProbe:
+            exec: {command: ["pg_isready", "-U", "lazaret"]}
+            periodSeconds: 10
+          livenessProbe:
+            exec: {command: ["pg_isready", "-U", "lazaret"]}
+            periodSeconds: 30
+          resources:
+            requests: {cpu: "250m", memory: "512Mi"}
+            limits: {memory: "2Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 20Gi}}

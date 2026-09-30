@@ -1,0 +1,126 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: v1
+kind: Service
+metadata:
+  name: engine
+  namespace: lazaret
+spec:
+  selector: {app: engine}
+  ports: [{name: http, port: 8700, targetPort: 8700}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: engine
+  namespace: lazaret
+spec:
+  # ONE. Not a starting point to scale from.
+  #
+  # A DuckLake catalog is bound to its data path and the engine takes a write lock on
+  # it; DuckDB is linked into the process with a single connection. A second replica
+  # does not share the work, it fights for the catalog.
+  #
+  # Hunt is the part that would benefit from scaling out, and it can: a hunt worker
+  # opens its own read-only Store. That is a separate Deployment to add when it is
+  # needed, not a replica count to raise here.
+  replicas: 1
+  strategy:
+    # Recreate, not RollingUpdate. A rolling update starts the new pod before the old
+    # one exits, which is exactly the two-writers case above — and the failure is a
+    # corrupted catalog rather than a crash.
+    type: Recreate
+  selector:
+    matchLabels: {app: engine}
+  template:
+    metadata:
+      labels: {app: engine, tier: analysis, egress-internet: "true"}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # 10002 is the `engine` user the image creates, not distroless's 65532. The
+        # engine is a Debian image because DuckDB is cgo; overriding this with the
+        # distroless uid would leave it unable to write the volumes it mounts.
+        runAsUser: 10002
+        runAsGroup: 10002
+        fsGroup: 10002
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        # The detection content. A git checkout rather than a ConfigMap: the corpus is
+        # 1,257 files and several megabytes, well past the 1MiB a ConfigMap holds.
+        #
+        # Pinned to a tag. Rules are code — a floating ref means the detections change
+        # under you on a pod restart, and a verdict you cannot reproduce is not one you
+        # can defend.
+        - name: rules
+          image: alpine/git:2.45.2
+          args:
+            - clone
+            - --depth=1
+            - --branch=main
+            - https://github.com/sublime-security/sublime-rules.git
+            - /rules
+          volumeMounts: [{name: rules, mountPath: /rules}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: false
+            # The clone has to be writable by the engine that reads it afterwards.
+            runAsUser: 10002
+      containers:
+        - name: engine
+          image: ghcr.io/lazaretemail/lazaret-engine:v0.1.0
+          args: ["-addr=:8700"]
+          envFrom:
+            - configMapRef: {name: lazaret}
+            # Only the engine's own credentials. The ingest token and the database
+            # password for the postgres pod live in their own secrets, so neither is
+            # handed to a process with no use for it.
+            - secretRef: {name: lazaret-engine}
+          env:
+            - name: LAZARET_RULES
+              value: /etc/lazaret/rules/detection-rules
+          ports: [{name: http, containerPort: 8700}]
+          volumeMounts:
+            - {name: rules, mountPath: /etc/lazaret/rules, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+            # DuckDB installs its extensions — ducklake, postgres, httpfs — under
+            # $HOME/.duckdb at first start, and the root filesystem is read-only.
+            # Without this the engine exits with "Failed to create directory
+            # /home/engine/.duckdb: Read-only file system".
+            #
+            # emptyDir rather than a PVC: the extensions are re-downloaded when the
+            # pod moves, which costs a few seconds of startup and keeps the pod
+            # disposable. It does mean the engine needs egress on every cold start,
+            # which it has for the list downloads anyway.
+            - {name: duckdb, mountPath: /home/engine}
+          # /v0/health, which is unauthenticated and cheap. Deliberately not
+          # /v0/readiness: that one reports whether custody is writable, and taking the
+          # engine out of rotation because the blob store is slow would turn a reduced
+          # capability into an outage. Quarantine already refuses safely on its own.
+          startupProbe:
+            httpGet: {path: /v0/health, port: 8700}
+            # Generous: the first start applies the schema, attaches DuckLake and
+            # compiles 1,257 rules.
+            failureThreshold: 60
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /v0/health, port: 8700}
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet: {path: /v0/health, port: 8700}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "500m", memory: "1Gi"}
+            # DuckDB is an in-process analytical engine and hunt reads columns into
+            # memory. This is the limit a corpus of a few million messages wants; a
+            # small deployment can halve it.
+            limits: {memory: "4Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true
+      volumes:
+        - {name: rules, emptyDir: {}}
+        - {name: tmp, emptyDir: {}}
+        - {name: duckdb, emptyDir: {}}

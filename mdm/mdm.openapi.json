@@ -1,0 +1,1582 @@
+{
+ "components": {
+  "schemas": {
+   "Mdm_serviceAttachment": {
+    "properties": {
+     "content_disposition": {
+      "description": "Content-Disposition type, typically 'attachment' or 'inline'",
+      "type": "string"
+     },
+     "content_id": {
+      "description": "Content-ID extracted from the MIME payload; is stripped of leading and trailing <> characters",
+      "type": "string"
+     },
+     "content_transfer_encoding": {
+      "description": "Content-Transfer-Encoding extracted from the MIME payload",
+      "type": "string"
+     },
+     "content_type": {
+      "description": "Content-Type extracted from the MIME payload",
+      "type": "string"
+     },
+     "file_extension": {
+      "description": "File extension from context such as headers",
+      "type": "string"
+     },
+     "file_name": {
+      "description": "File name",
+      "type": "string"
+     },
+     "file_type": {
+      "description": "File type determined by looking at the magic bytes in the file",
+      "enum": [
+       "3gp",
+       "7z",
+       "Z",
+       "aac",
+       "aiff",
+       "amr",
+       "ar",
+       "avi",
+       "bmp",
+       "bz2",
+       "cab",
+       "cr2",
+       "crx",
+       "dcm",
+       "deb",
+       "dex",
+       "dey",
+       "doc",
+       "docx",
+       "dwg",
+       "elf",
+       "eot",
+       "epub",
+       "exe",
+       "flac",
+       "flv",
+       "gif",
+       "gz",
+       "heif",
+       "html",
+       "ico",
+       "ics",
+       "iso",
+       "jp2",
+       "jpg",
+       "jxr",
+       "lz",
+       "m4a",
+       "m4v",
+       "macho",
+       "mid",
+       "mkv",
+       "mov",
+       "mp3",
+       "mp4",
+       "mpg",
+       "nes",
+       "ogg",
+       "otf",
+       "pdf",
+       "png",
+       "ppt",
+       "pptx",
+       "ps",
+       "psd",
+       "rar",
+       "rpm",
+       "rtf",
+       "sqlite",
+       "svg",
+       "swf",
+       "tar",
+       "tif",
+       "ttf",
+       "wasm",
+       "wav",
+       "webm",
+       "webp",
+       "wmv",
+       "woff",
+       "woff2",
+       "xls",
+       "xlsx",
+       "xz",
+       "zip",
+       "zst",
+       "unknown"
+      ],
+      "type": "string"
+     },
+     "md5": {
+      "description": "MD5 hash of the raw contents",
+      "type": "string"
+     },
+     "raw": {
+      "description": "Base64 encoded source of the file",
+      "format": "base64",
+      "nullable": true,
+      "type": "string"
+     },
+     "sha1": {
+      "description": "SHA1 hash of the raw contents",
+      "type": "string"
+     },
+     "sha256": {
+      "description": "SHA256 hash of the raw contents",
+      "type": "string"
+     },
+     "size": {
+      "description": "Size of the file in bytes",
+      "format": "int64",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceAuthResults": {
+    "description": "Results of authentication. Supported fields include 'Authentication-Results', 'X-Original-Authentication-Results', 'X-MS-Exchange-Authentication-Results', 'X-Agari-Authentication-Results', 'Authentication-Results-Original', and 'ARC-Authentication-Results'. Specification details can be found at https://tools.ietf.org/html/rfc8601",
+    "properties": {
+     "compauth": {
+      "$ref": "#/components/schemas/Mdm_serviceCompAuth"
+     },
+     "dkim": {
+      "description": "Verdict of the Domain Keys Identified Mail check",
+      "enum": [
+       "none",
+       "pass",
+       "fail",
+       "policy",
+       "neutral",
+       "temperror",
+       "permerror"
+      ],
+      "type": "string"
+     },
+     "dkim_details": {
+      "description": "List of details of the Domain Keys Identified Mail checks",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceSignature"
+      },
+      "type": "array"
+     },
+     "dmarc": {
+      "description": "Verdict of the Domain-based Message Authentication, Reporting & Conformance check",
+      "enum": [
+       "none",
+       "pass",
+       "fail",
+       "bestguesspass"
+      ],
+      "type": "string"
+     },
+     "dmarc_details": {
+      "$ref": "#/components/schemas/Mdm_serviceDMARC"
+     },
+     "instance": {
+      "description": "Instance number of this auth result (if ARC)",
+      "type": "string"
+     },
+     "server": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "spf": {
+      "description": "Verdict of the Sender Policy Framework",
+      "enum": [
+       "none",
+       "pass",
+       "fail",
+       "softfail",
+       "policy",
+       "neutral",
+       "temperror",
+       "permerror"
+      ],
+      "type": "string"
+     },
+     "spf_details": {
+      "$ref": "#/components/schemas/Mdm_serviceSPF"
+     },
+     "type": {
+      "description": "The type of authentication result, derived from the field name",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceAuthSummary": {
+    "description": "Summary of authentication results for the message",
+    "properties": {
+     "dmarc": {
+      "$ref": "#/components/schemas/Mdm_serviceDMARCSummary"
+     },
+     "spf": {
+      "$ref": "#/components/schemas/Mdm_serviceSPFSummary"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceBanner": {
+    "properties": {
+     "links": {
+      "description": "All links found in the banner, unique by the target and display text/url.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "text": {
+      "description": "The text content from the warning banner.",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceBody": {
+    "description": "Body of the email",
+    "properties": {
+     "current_thread": {
+      "$ref": "#/components/schemas/Mdm_serviceThread"
+     },
+     "html": {
+      "$ref": "#/components/schemas/Mdm_serviceBodyHTML"
+     },
+     "ips": {
+      "description": "IP Addresses located in the body",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceIP"
+      },
+      "type": "array"
+     },
+     "links": {
+      "description": "All links found in the body of the message, unique by the target and display text/url.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "plain": {
+      "$ref": "#/components/schemas/Mdm_servicePlain"
+     },
+     "previous_threads": {
+      "description": "The previous texts threads of the message'",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_servicePreviousThread"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceBodyHTML": {
+    "description": "The body part containing content-type text/html",
+    "properties": {
+     "charset": {
+      "description": "charset of the text/[subtype]",
+      "type": "string"
+     },
+     "content_transfer_encoding": {
+      "description": "Content-Transfer-Encoding of the text/[subtype]",
+      "type": "string"
+     },
+     "display_text": {
+      "description": "Visible text of the HTML document, with invisible characters removed and non-ASCII characters converted to ASCII spaces.",
+      "nullable": true,
+      "type": "string"
+     },
+     "inner_text": {
+      "description": "Inner text of the HTML document that doesn't include HTML tags.",
+      "nullable": true,
+      "type": "string"
+     },
+     "links": {
+      "description": "All links found in the HTML part of the body of the message",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "raw": {
+      "description": "Decoded raw content of a body text type (text/[subtype] section)",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceCompAuth": {
+    "description": "Composite Authentication result, used by Microsoft O365",
+    "properties": {
+     "reason": {
+      "description": "Reason for the verdict",
+      "type": "string"
+     },
+     "verdict": {
+      "description": "Verdict of the compauth",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason",
+     "verdict"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceDMARC": {
+    "description": "Details of the Domain-based Message Authentication, Reporting & Conformance check",
+    "properties": {
+     "action": {
+      "description": "Indicates the action taken by the spam filter based on the results of the DMARC check. For more information see https://docs.microsoft.com/en-us/microsoft-365/security/office-365-security/anti-spam-message-headers?view=o365-worldwide#authentication-results-message-header-fields",
+      "nullable": true,
+      "type": "string"
+     },
+     "disposition": {
+      "description": "Gmail-applied policy",
+      "nullable": true,
+      "type": "string"
+     },
+     "from": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "policy": {
+      "description": "Policy for the organizational domain",
+      "nullable": true,
+      "type": "string"
+     },
+     "sub_policy": {
+      "description": "Policy for the subdomain of the organizational domain",
+      "nullable": true,
+      "type": "string"
+     },
+     "verdict": {
+      "description": "Describes the results of the DMARC check for the message",
+      "nullable": true,
+      "type": "string"
+     },
+     "version": {
+      "description": "DMARC version",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceDMARCSummary": {
+    "description": "Summary of the DMARC check",
+    "properties": {
+     "details": {
+      "$ref": "#/components/schemas/Mdm_serviceDMARC"
+     },
+     "error": {
+      "description": "Whether the DMARC check errored",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "pass": {
+      "description": "Whether the DMARC check passed",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "received_hop": {
+      "description": "The lowest hop at which the DMARC check was made",
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceDomain": {
+    "description": "Domain parsed from X-Authenticated-Domain or X-Authenticated-Sender headers, which represents the domain used for sender authentication, typically the domain of the sending organization. This field provides additional context for analyzing the legitimacy of the sender",
+    "properties": {
+     "domain": {
+      "description": "The fully qualified domain name (FQDN). This may not *always* be routable, e.g. when an email address contains a domain that is just a TLD with no SLD, e.g. foo@WIN-bar",
+      "format": "hostname",
+      "type": "string"
+     },
+     "punycode": {
+      "description": "Interpreted punycode if the domain starts with xn--. For example, if 'domain' is 'xn--ublimesecurity-4xc.com' then 'punycode' is \u015bublimesecurity.com",
+      "type": "string"
+     },
+     "root_domain": {
+      "description": "The root domain, including the TLD",
+      "format": "hostname",
+      "type": "string"
+     },
+     "sld": {
+      "description": "Second-level domain, e.g. 'windows' for the domain 'windows.net'",
+      "type": "string"
+     },
+     "subdomain": {
+      "description": "Subdomain, e.g. 'drive' for the domain 'drive.google.com'",
+      "type": "string"
+     },
+     "tld": {
+      "description": "The domain's top-level domain. E.g. the TLD of google.com is 'com'",
+      "type": "string"
+     },
+     "valid": {
+      "description": "Whether the domain is valid",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "domain"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceEmailAddress": {
+    "description": "Email address object",
+    "properties": {
+     "domain": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "email": {
+      "description": "Full email address",
+      "format": "email",
+      "type": "string"
+     },
+     "local_part": {
+      "description": "Local-part, i.e. before the @",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceExternal": {
+    "description": "Cloud API provider or other external source metadata",
+    "properties": {
+     "created_at": {
+      "description": "The created time of the message as provided by the cloud API (G Suite or Office 365) or other external source. This is typically the time the external source received the message",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "message_id": {
+      "description": "The message ID as provided by the cloud API (G Suite or Office 365) or other external source",
+      "type": "string"
+     },
+     "route_type": {
+      "description": "whether the message was sent or received",
+      "enum": [
+       "sent",
+       "received"
+      ],
+      "type": "string"
+     },
+     "spam": {
+      "description": "The upstream mail gateway determined the message to be spam. For cloud API providers, this will be the same as spam_folder. For other implementation methods like transport rules, this will be determined by message header values (e.g. X-SPAM) if supported",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "spam_folder": {
+      "description": "The message arrived in the user's spam folder. This only applies to cloud APIs (G Suite or Office 365)",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "thread_id": {
+      "description": "The thread/conversation's unique ID as provided by the cloud API (G Suite or Office 365)",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceHeaders": {
+    "description": "The message headers",
+    "properties": {
+     "auth_summary": {
+      "$ref": "#/components/schemas/Mdm_serviceAuthSummary"
+     },
+     "date": {
+      "description": "Date the email was sent in UTC.",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "date_original_offset": {
+      "description": "UTC timezone offset of the sender",
+      "nullable": true,
+      "type": "string"
+     },
+     "delivered_to": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     },
+     "domains": {
+      "description": "All domains found in the Received headers",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceDomain"
+      },
+      "type": "array"
+     },
+     "from": {
+      "$ref": "#/components/schemas/Mdm_serviceMailbox"
+     },
+     "hops": {
+      "description": "List of hops the message took from Sender to Recipient",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceHop"
+      },
+      "type": "array"
+     },
+     "in_reply_to": {
+      "description": "In-Reply-To header value which identifies its parent message if exists",
+      "nullable": true,
+      "type": "string"
+     },
+     "ips": {
+      "description": "All IP addresses found in the Received headers",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceIP"
+      },
+      "type": "array"
+     },
+     "mailer": {
+      "description": "X-Mailer or User-Agent extracted from headers",
+      "nullable": true,
+      "type": "string"
+     },
+     "message_id": {
+      "description": "Message-ID extracted from the header",
+      "nullable": true,
+      "type": "string"
+     },
+     "references": {
+      "description": "The Message-IDs of the other messages within this chain",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "reply_to": {
+      "description": "Where replies should be delivered to",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     },
+     "return_path": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     },
+     "sensitivity_label": {
+      "$ref": "#/components/schemas/Mdm_serviceSensitivityLabel"
+     },
+     "x_authenticated_domain": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "x_authenticated_sender": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     },
+     "x_client_ip": {
+      "$ref": "#/components/schemas/Mdm_serviceIP"
+     },
+     "x_originating_ip": {
+      "$ref": "#/components/schemas/Mdm_serviceIP"
+     },
+     "x_secure_server_account": {
+      "description": "X-SecureServer-Acct header, which represents a unique identifier associated with the sender's email account on a secure server and can be used to trace the email back to a specific account or user. ",
+      "nullable": true,
+      "type": "string"
+     },
+     "x_sender": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     }
+    },
+    "required": [
+     "hops"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceHop": {
+    "properties": {
+     "authentication_results": {
+      "$ref": "#/components/schemas/Mdm_serviceAuthResults"
+     },
+     "fields": {
+      "description": "List of all raw header fields contained within this hop",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceHopField"
+      },
+      "type": "array"
+     },
+     "index": {
+      "description": "Index indicates the order in which a hop occurred from sender to recipient",
+      "format": "int32",
+      "type": "integer"
+     },
+     "received": {
+      "$ref": "#/components/schemas/Mdm_serviceReceived"
+     },
+     "received_spf": {
+      "$ref": "#/components/schemas/Mdm_serviceSPF"
+     },
+     "signature": {
+      "$ref": "#/components/schemas/Mdm_serviceSignature"
+     }
+    },
+    "required": [
+     "fields",
+     "index"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceHopField": {
+    "properties": {
+     "name": {
+      "description": "The name of the field",
+      "type": "string"
+     },
+     "position": {
+      "description": "This field's position along the entire list of header fields",
+      "format": "int32",
+      "type": "integer"
+     },
+     "value": {
+      "description": "The value contained within the field",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "position"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceIP": {
+    "description": "X-Originating-IP header, which identifies the originating IP address of the sender client",
+    "properties": {
+     "ip": {
+      "description": "The IP in canonical form",
+      "type": "string"
+     },
+     "translation": {
+      "$ref": "#/components/schemas/Mdm_serviceIPTranslation"
+     },
+     "version": {
+      "description": "The version of IP (i.e., 4 or 6), null for backward compatibility.",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "ip"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceIPTranslation": {
+    "properties": {
+     "encoders": {
+      "description": "The radix/form encodings detected on a non-standard IPv4 host that was decoded into 'ip'",
+      "items": {
+       "enum": [
+        "hex",
+        "octal",
+        "decimal_integer",
+        "dotted",
+        "mixed_radix"
+       ],
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "original": {
+      "description": "The IP in its original form before any translation occurred",
+      "nullable": true,
+      "type": "string"
+     },
+     "v4_to_v6": {
+      "description": "Whether 'Original' is IPv4-mapped-IPv6",
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceLink": {
+    "properties": {
+     "display_text": {
+      "description": "The text of a hyperlink, if it's not a URL",
+      "type": "string"
+     },
+     "display_url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     },
+     "href_url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     },
+     "mismatched": {
+      "description": "Whether the display URL and href URL root domains are mismatched (i.e. .href_url.domain.root_domain != .display_url.domain.root_domain, where both are not null and valid domains)",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "parser": {
+      "description": "The parser that was used to derived the link",
+      "enum": [
+       "plain",
+       "hyperlink"
+      ],
+      "type": "string"
+     },
+     "visible": {
+      "description": "Whether the link is visible to a human when previewing an email or page",
+      "nullable": true,
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceMailbox": {
+    "description": "Organizer mailbox with email and display name",
+    "properties": {
+     "display_name": {
+      "description": "Display name",
+      "type": "string"
+     },
+     "email": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     }
+    },
+    "required": [
+     "email"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceMailboxExtended": {
+    "description": "The mailbox where the message was found",
+    "properties": {
+     "display_name": {
+      "description": "Display name",
+      "type": "string"
+     },
+     "email": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     },
+     "first_name": {
+      "description": "First name (given name) of the mailbox owner",
+      "type": "string"
+     },
+     "last_name": {
+      "description": "Last name (surname) of the mailbox owner",
+      "type": "string"
+     }
+    },
+    "required": [
+     "email"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceMessageDataModel": {
+    "description": "Full data model of the message",
+    "properties": {
+     "_errors": {
+      "description": "Non-fatal errors while parsing MDM",
+      "items": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "type": "array"
+     },
+     "_meta": {
+      "$ref": "#/components/schemas/Mdm_serviceMetadata"
+     },
+     "attachments": {
+      "description": "Attachments",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceAttachment"
+      },
+      "type": "array"
+     },
+     "body": {
+      "$ref": "#/components/schemas/Mdm_serviceBody"
+     },
+     "external": {
+      "$ref": "#/components/schemas/Mdm_serviceExternal"
+     },
+     "headers": {
+      "$ref": "#/components/schemas/Mdm_serviceHeaders"
+     },
+     "mailbox": {
+      "$ref": "#/components/schemas/Mdm_serviceMailboxExtended"
+     },
+     "recipients": {
+      "$ref": "#/components/schemas/Mdm_serviceRecipients"
+     },
+     "sender": {
+      "$ref": "#/components/schemas/Mdm_serviceSenderMailbox"
+     },
+     "subject": {
+      "$ref": "#/components/schemas/Mdm_serviceSubject"
+     },
+     "type": {
+      "$ref": "#/components/schemas/Mdm_serviceMessageType"
+     }
+    },
+    "required": [
+     "_meta",
+     "headers",
+     "recipients",
+     "sender",
+     "type"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceMessageType": {
+    "description": "Override on message types, defined from the perspective of your organization",
+    "properties": {
+     "inbound": {
+      "description": "Message was sent from someone outside your organization, to *at least one* recipient inside your organization",
+      "type": "boolean"
+     },
+     "internal": {
+      "description": "Message was sent from someone inside your organization, to *at least one* recipient inside your organization. Messages *must be authenticated* by either SPF or DKIM to be treated as internal.",
+      "type": "boolean"
+     },
+     "outbound": {
+      "description": "Message was sent from someone inside your organization, to *at least one* recipient outside your organization",
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceMetadata": {
+    "description": "Metadata",
+    "properties": {
+     "canonical_id": {
+      "description": "A deterministic ID, generated from metadata such as Attachments, Body, Subject, Sender and is used to group similar messages/campaigns together",
+      "type": "string"
+     },
+     "created_at": {
+      "description": "Creation time of the data model",
+      "format": "date-time",
+      "type": "string"
+     },
+     "effective_at": {
+      "description": "Effective time of the data model, used for evaluation against lists and historical functions such as sender profiles or whois.",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "id": {
+      "description": "Message ID",
+      "format": "uuid",
+      "type": "string"
+     }
+    },
+    "required": [
+     "canonical_id",
+     "created_at"
+    ],
+    "type": "object"
+   },
+   "Mdm_servicePlain": {
+    "description": "The body part containing content-type text/plain",
+    "properties": {
+     "charset": {
+      "description": "charset of the text/[subtype]",
+      "type": "string"
+     },
+     "content_transfer_encoding": {
+      "description": "Content-Transfer-Encoding of the text/[subtype]",
+      "type": "string"
+     },
+     "links": {
+      "description": "All links found in the plain part of the body of the message",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "raw": {
+      "description": "Decoded raw content of a body text type (text/[subtype] section)",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_servicePreviousThread": {
+    "properties": {
+     "banners": {
+      "description": "All warning banners found in the body of the message.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceBanner"
+      },
+      "type": "array"
+     },
+     "date": {
+      "description": "Date extracted from thread preamble",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "index": {
+      "description": "The index of the thread among all threads, sorted from most recent to oldest",
+      "format": "int32",
+      "type": "integer"
+     },
+     "links": {
+      "description": "All links found in the given thread, unique by the target and display text/url.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "preamble": {
+      "description": "The preamble text from the thread, typically the headers of a reply or forward. Things like From, Sent, Subject, saved as one big multiline string. This doesn't include banners.",
+      "type": "string"
+     },
+     "recipients": {
+      "$ref": "#/components/schemas/Mdm_serviceThreadRecipients"
+     },
+     "sender": {
+      "$ref": "#/components/schemas/Mdm_serviceMailbox"
+     },
+     "subject": {
+      "$ref": "#/components/schemas/Mdm_serviceSubject"
+     },
+     "text": {
+      "description": "The text content from the latest reply/forward in a message thread. This typically excludes content from forwarded messages and warning banners.",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceived": {
+    "description": "Details of the Received field",
+    "properties": {
+     "additional": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedAdditional"
+     },
+     "id": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedID"
+     },
+     "link": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedVia"
+     },
+     "mailbox": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedFor"
+     },
+     "protocol": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedWith"
+     },
+     "server": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedBy"
+     },
+     "source": {
+      "$ref": "#/components/schemas/Mdm_serviceReceivedFrom"
+     },
+     "time": {
+      "description": "Time parsed from the Received header",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "zone_offset": {
+      "description": "Timezone offset parsed from the Received header",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedAdditional": {
+    "description": "The remaining additional clauses of the Received header",
+    "properties": {
+     "raw": {
+      "description": "The raw string for remaining additional clauses, such as transport information",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedBy": {
+    "description": "The 'by' section of the Received header, denoting the current server",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'by' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedFor": {
+    "description": "The 'for' section of the Received header, denoting the destination mailbox",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'for' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedFrom": {
+    "description": "The 'from' section of the Received header, relating to a server in a prior hop",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'from' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedID": {
+    "description": "The 'id' section of the Received header",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'id' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedVia": {
+    "description": "The 'via' section of the Received header, denoting transport",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'via' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceReceivedWith": {
+    "description": "The 'with' section of the Received header, denoting the protocol used",
+    "properties": {
+     "raw": {
+      "description": "The raw string of 'with' section",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceRecipients": {
+    "description": "Recipient objects",
+    "properties": {
+     "bcc": {
+      "description": "List of 'bcc' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     },
+     "cc": {
+      "description": "List of 'cc' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     },
+     "to": {
+      "description": "List of 'to' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceRewriteDetails": {
+    "description": "Information about an original URL that was unfurled from rewrite detection",
+    "properties": {
+     "encoders": {
+      "description": "List of detected URL rewrite encoders while unraveling the URL",
+      "items": {
+       "enum": [
+        "act",
+        "adobe",
+        "appspot",
+        "aws_ses",
+        "azurecomm",
+        "azure_safelink",
+        "barracuda",
+        "bing_open_redirect",
+        "branch_io",
+        "checkpoint",
+        "cisco",
+        "cloudflare",
+        "convertkit",
+        "customerio",
+        "deref_mail",
+        "doubleclick",
+        "edgepilot",
+        "egress",
+        "esvalabs",
+        "exactag",
+        "exclaimer",
+        "facebook",
+        "fireeye",
+        "fortimail",
+        "generic_desturl",
+        "generic_logout_redirect",
+        "go_acoustic",
+        "google_amp",
+        "google_amp_project",
+        "google_adservices",
+        "google_additnow_open_redirect",
+        "google_meet_redirect",
+        "google_notifications",
+        "google_open_redirect",
+        "google_tag_manager",
+        "google_travel_redirect",
+        "google_translate_open_redirect",
+        "google_user_content",
+        "hornetsecurity",
+        "href_li",
+        "indeed_open_redirect",
+        "inky",
+        "instagram",
+        "mailchimp",
+        "mailgun",
+        "mailinblack",
+        "mailjet",
+        "mailmarshal",
+        "mandrill",
+        "messagegears",
+        "microsoft",
+        "microsoft_dynamics",
+        "microsoft_oauth_redirect",
+        "monday_tracker",
+        "postmark",
+        "ppcprotect",
+        "proofpoint",
+        "pylonlinks",
+        "securence",
+        "sophos",
+        "sqclick",
+        "squarespace",
+        "staffbase",
+        "sublime",
+        "titanhq",
+        "topsec",
+        "trend_micro",
+        "vade_secure",
+        "vtiger",
+        "wix",
+        "wordpress_tnp",
+        "yahoo",
+        "youtube_set_sid",
+        "cloudflare_one"
+       ],
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "original": {
+      "description": "Original URL without any unraveling URL rewrites",
+      "type": "string"
+     }
+    },
+    "required": [
+     "original"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceSPF": {
+    "description": "Details of the Sender Policy Framework check. Supported fields include 'Received-SPF' and 'X-Received-SPF'",
+    "properties": {
+     "client_ip": {
+      "$ref": "#/components/schemas/Mdm_serviceIP"
+     },
+     "description": {
+      "description": "Verbose description of the SPF verdict",
+      "nullable": true,
+      "type": "string"
+     },
+     "designator": {
+      "description": "Email or domain of the designating body",
+      "nullable": true,
+      "type": "string"
+     },
+     "helo": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "server": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "verdict": {
+      "description": "Verdict of the SPF",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceSPFSummary": {
+    "description": "Summary of the SPF check",
+    "properties": {
+     "details": {
+      "$ref": "#/components/schemas/Mdm_serviceSPF"
+     },
+     "error": {
+      "description": "Whether the SPF check errored",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "pass": {
+      "description": "Whether the SPF check passed",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "received_hop": {
+      "description": "The lowest hop at which the SPF check was made",
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceSenderMailbox": {
+    "description": "Sender object",
+    "properties": {
+     "decoders": {
+      "description": "Decoders used to parse the email sender info, if any",
+      "items": {
+       "enum": [
+        "google_groups",
+        "ics_sent_by"
+       ],
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "display_name": {
+      "description": "Display name",
+      "type": "string"
+     },
+     "email": {
+      "$ref": "#/components/schemas/Mdm_serviceEmailAddress"
+     }
+    },
+    "required": [
+     "email"
+    ],
+    "type": "object"
+   },
+   "Mdm_serviceSensitivityLabel": {
+    "description": "INTERNAL",
+    "properties": {
+     "id": {
+      "description": "Provider-defined sensitivity label ID",
+      "type": "string"
+     },
+     "name": {
+      "description": "Label name from provider metadata; not necessarily the display name",
+      "type": "string"
+     },
+     "provider": {
+      "description": "Provider that defined the sensitivity label",
+      "type": "string"
+     },
+     "provider_account_id": {
+      "description": "External provider account that owns the label, such as a Microsoft Entra tenant ID",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceSignature": {
+    "description": "Details of a message signature. Supported fields include 'DKIM-Signature', 'DomainKey-Signature', 'X-Google-DKIM-Signature' and 'ARC-Message-Signature'",
+    "properties": {
+     "algorithm": {
+      "description": "Signing algorithm",
+      "type": "string"
+     },
+     "body_hash": {
+      "description": "Body Hash",
+      "type": "string"
+     },
+     "domain": {
+      "description": "Domain identified in the DKIM signature if any. This is the domain that's queried for the public key.",
+      "type": "string"
+     },
+     "headers": {
+      "description": "Header fields signed by the algorithm",
+      "type": "string"
+     },
+     "instance": {
+      "description": "Instance number of this signature (if ARC)",
+      "type": "string"
+     },
+     "selector": {
+      "description": "Selector",
+      "type": "string"
+     },
+     "signature": {
+      "description": "Signature of headers and body",
+      "type": "string"
+     },
+     "type": {
+      "description": "The type of signature, derived from the field name",
+      "type": "string"
+     },
+     "version": {
+      "description": "Version",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceSubject": {
+    "description": "Subject object",
+    "properties": {
+     "base": {
+      "description": "Subject of the email with tags and reply/forward indicators removed",
+      "type": "string"
+     },
+     "is_auto_reply": {
+      "description": "Indicates if the subject of the email is an automatic reply",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "is_forward": {
+      "description": "Indicates if the subject of the email is a forward",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "is_reply": {
+      "description": "Indicates if the subject of the email is a reply",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "subject": {
+      "description": "Subject of the email",
+      "type": "string"
+     },
+     "tags": {
+      "description": "Leading tags extracted from the subject, e.g. [External] or (Warning)",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "urls": {
+      "description": "URLs found in the subject",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceThread": {
+    "description": "The current text thread of the message",
+    "properties": {
+     "banners": {
+      "description": "All warning banners found in the body of the message.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceBanner"
+      },
+      "type": "array"
+     },
+     "links": {
+      "description": "All links found in the given thread, unique by the target and display text/url.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "preamble": {
+      "description": "The preamble text from the thread, typically the headers of a reply or forward. Things like From, Sent, Subject, saved as one big multiline string. This doesn't include banners.",
+      "type": "string"
+     },
+     "text": {
+      "description": "The text content from the latest reply/forward in a message thread. This typically excludes content from forwarded messages and warning banners.",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceThreadRecipients": {
+    "description": "Recipients extracted from thread preamble",
+    "properties": {
+     "bcc": {
+      "description": "List of 'bcc' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     },
+     "cc": {
+      "description": "List of 'cc' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     },
+     "to": {
+      "description": "List of 'to' Mailbox objects",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceMailbox"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceURL": {
+    "description": "URL details when QR code type is url",
+    "properties": {
+     "domain": {
+      "$ref": "#/components/schemas/Mdm_serviceDomain"
+     },
+     "fragment": {
+      "description": "Fragment identifier; the text following the # in the URL (also called the anchor tag)",
+      "type": "string"
+     },
+     "ip": {
+      "$ref": "#/components/schemas/Mdm_serviceIP"
+     },
+     "password": {
+      "description": "The password specified before the domain name",
+      "type": "string"
+     },
+     "path": {
+      "description": "Everything after the TLD and before the query parameters",
+      "type": "string"
+     },
+     "port": {
+      "description": "The port used for the URL. If no explicit port is set, the port will be inferred from the protocol",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "query_params": {
+      "description": "The full query parameters of the URL",
+      "type": "string"
+     },
+     "query_params_decoded": {
+      "additionalProperties": {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      "description": "The decoded query parameters of the URL",
+      "type": "object"
+     },
+     "rewrite": {
+      "$ref": "#/components/schemas/Mdm_serviceRewriteDetails"
+     },
+     "scheme": {
+      "description": "Protocol for the URL request, e.g. http",
+      "type": "string"
+     },
+     "url": {
+      "description": "Full URL",
+      "type": "string"
+     },
+     "username": {
+      "description": "The username specified before the domain name of the URL",
+      "type": "string"
+     }
+    },
+    "required": [
+     "url"
+    ],
+    "type": "object"
+   }
+  },
+  "securitySchemes": {
+   "bearerAuth": {
+    "scheme": "bearer",
+    "type": "http"
+   }
+  }
+ },
+ "info": {
+  "title": "Sublime Platform API",
+  "version": "generated"
+ },
+ "openapi": "3.0.1",
+ "paths": {
+  "/v0/messages/{id}/message_data_model": {
+   "get": {
+    "description": "Retrieve the message's Message Data Model. If there is no justification, it will be redacted.",
+    "operationId": "getMessageDataModel",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "type": "string"
+      }
+     },
+     {
+      "description": "When true, recompute the MDM from the raw EML. For internal use only!",
+      "in": "query",
+      "name": "recompute_mdm_from_raw",
+      "schema": {
+       "description": "When true, recompute the MDM from the raw EML. For internal use only!",
+       "nullable": true,
+       "type": "boolean"
+      }
+     },
+     {
+      "description": "When true, any text field over 1MB will be cleared before returning",
+      "in": "query",
+      "name": "remove_large_text_fields",
+      "schema": {
+       "description": "When true, any text field over 1MB will be cleared before returning",
+       "nullable": true,
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Mdm_serviceMessageDataModel"
+        }
+       }
+      },
+      "description": "OK"
+     }
+    },
+    "summary": "Retrieve the message's Message Data Model",
+    "tags": [
+     "Messages"
+    ]
+   }
+  }
+ },
+ "security": [
+  {
+   "bearerAuth": []
+  }
+ ],
+ "servers": [
+  {
+   "url": "{scheme}://{server}",
+   "variables": {
+    "scheme": {
+     "default": "https",
+     "enum": [
+      "http",
+      "https"
+     ]
+    },
+    "server": {
+     "default": "platform.sublime.security",
+     "description": "Base URL of your Sublime deployment"
+    }
+   }
+  }
+ ],
+ "tags": [
+  {
+   "name": "Messages"
+  }
+ ],
+ "x-readme": {
+  "explorer-enabled": false
+ }
+}

@@ -1,0 +1,213 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Workspace is consistent
+        run: |
+          go work sync
+          git diff --exit-code go.work go.mod || {
+            echo "::error::go.work or go.mod changed; commit the result of 'go work sync'"
+            exit 1
+          }
+
+      - name: Formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt needed for:"; echo "$unformatted"; exit 1
+          fi
+
+      - name: Generated code is current
+        run: |
+          go generate ./...
+          git diff --exit-code || {
+            echo "::error::generated files are stale; run 'go generate ./...' and commit"
+            exit 1
+          }
+
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test -race ./...
+
+      # The compatibility claim is only worth making if CI measures it. The corpus is
+      # fetched rather than vendored: pinning a copy would turn a claim about the live
+      # rule ecosystem into a claim about a snapshot.
+      - name: Fetch the public rule corpus
+        run: git clone --depth 1 https://github.com/sublime-security/sublime-rules testdata/sublime-rules
+
+      - name: Corpus compatibility
+        env:
+          LAZARET_CORPUS: testdata/sublime-rules
+        run: go test ./mql/ -run 'TestLexCorpus|TestParseCorpus|TestCheckCorpus|TestEvalCorpus' -v
+
+      # The core library must stay importable on its own, so what it actually links is
+      # budgeted. This counts packages the default build really imports, not the module
+      # graph: yara-x and protobuf appear in go.mod for the -tags yara build but are not
+      # linked without it, and counting them would penalise an optional capability.
+      - name: Core dependency budget
+        run: |
+          modules=$(GOWORK=off go list -deps ./mdm/ ./eml/ ./mql/ ./rules/ ./lists/ \
+            | grep -E '^[a-z0-9-]+\.[a-z]+/' \
+            | grep -v '^github.com/lazaretemail/lazaret' \
+            | sed -E 's|^([^/]+/[^/]+/?[^/]*).*|\1|' | sort -u)
+          count=$(echo "$modules" | grep -c . || true)
+          echo "linked by the core: $count"
+          echo "$modules"
+          if [ "$count" -gt 12 ]; then
+            echo "::error::the core links $count third-party modules (budget 12)"; exit 1
+          fi
+
+  yara:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+
+      # YARA-X is a Rust library reached through cgo, so the tagged build needs it
+      # present. The core stays cgo-free precisely so that this is one job's problem
+      # rather than every contributor's.
+      - name: Build YARA-X
+        run: |
+          cargo install --locked yara-x-cli --version 1.20.0 || true
+          git clone --depth 1 --branch v1.20.0 https://github.com/VirusTotal/yara-x /tmp/yara-x
+          cargo cinstall --release --prefix /usr/local --manifest-path /tmp/yara-x/capi/Cargo.toml \
+            || cargo install cargo-c && cargo cinstall --release --prefix /usr/local \
+               --manifest-path /tmp/yara-x/capi/Cargo.toml
+          sudo ldconfig
+
+      - run: go build -tags yara ./...
+      - run: go test -tags yara ./yara/...
+
+  # The unit tests cannot find a wire-format mismatch, because a fixture written from the
+  # published schema and a fake built from the same schema agree with each other. Both
+  # divergences in Strelka's response were found by running the real thing, and one of
+  # them survived a live scan until a YARA signature actually matched. So the deployment
+  # itself is part of CI.
+  strelka:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Start Strelka
+        run: docker compose -f third_party/strelka/docker-compose.yml up -d
+
+      - name: Fetch the public rule corpus
+        run: git clone --depth 1 https://github.com/sublime-security/sublime-rules testdata/sublime-rules
+
+      # The frontend accepts connections before the backend is draining the queue, so
+      # readiness is a scan that succeeds, not a port that opens.
+      - name: Wait for the backend
+        env:
+          LAZARET_STRELKA: localhost:57314
+        run: |
+          for i in $(seq 1 40); do
+            if go test ./strelka/ -run TestLiveStrelka -count=1 >/dev/null 2>&1; then
+              echo "ready after $((i * 3))s"; exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::Strelka did not become ready"; exit 1
+
+      - name: Live scan
+        env:
+          LAZARET_STRELKA: localhost:57314
+          LAZARET_CORPUS: testdata/sublime-rules
+        run: go test ./strelka/ -run Live -count=1 -v
+
+      - name: Container logs
+        if: failure()
+        run: docker compose -f third_party/strelka/docker-compose.yml logs --tail 100
+  # Everything the root module's ./... does not reach.
+  #
+  # The services are separate Go modules on purpose — it is what keeps an ONNX runtime
+  # and a headless Chromium out of the library's dependency graph — and the cost is
+  # that `go build ./...` from the root compiles none of them. Six of the eight
+  # published images were code CI had never once compiled, so a pull request could
+  # break the engine and stay green.
+  services:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - telemetry
+          - services/engine
+          - services/ml
+          - services/render
+          - services/ingest
+          - services/dashboard
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+          cache: true
+
+      # The console is build output, not source, so a fresh checkout has an empty
+      # web/dist holding only the marker that keeps //go:embed compiling. That is
+      # enough to build the binary; it is not enough to know the front end still
+      # type-checks, which is what this does.
+      - uses: actions/setup-node@v4
+        if: matrix.module == 'services/dashboard'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: services/dashboard/web/package-lock.json
+      - name: Build the console
+        if: matrix.module == 'services/dashboard'
+        working-directory: services/dashboard/web
+        run: |
+          npm ci
+          npm run build      # vue-tsc runs first, so this type-checks as well
+
+      - name: Formatting
+        working-directory: ${{ matrix.module }}
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt -w these:"; echo "$unformatted"; exit 1
+          fi
+
+      - working-directory: ${{ matrix.module }}
+        run: go vet ./...
+      - working-directory: ${{ matrix.module }}
+        run: go build ./...
+      # Not -race: the ml module links a C++ tokenizer and ONNX Runtime through cgo,
+      # and the race detector has nothing useful to say about either.
+      - working-directory: ${{ matrix.module }}
+        run: go test ./...
+
+      # Generated TypeScript is derived from the Go wire structs, so the two cannot
+      # drift without somebody noticing here.
+      - name: Generated types are current
+        if: matrix.module == 'services/dashboard'
+        working-directory: services/dashboard
+        run: |
+          go generate ./...
+          git diff --exit-code web/src/api/types.gen.ts || {
+            echo "::error::types.gen.ts is stale; run 'go generate ./...' in services/dashboard"
+            exit 1
+          }

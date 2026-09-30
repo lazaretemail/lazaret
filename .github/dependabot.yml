@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The publish workflow pins its actions to commit SHAs because it holds
+# packages:write and id-token:write, and a mutable tag there is a way to publish
+# images under this org's name. Pinned means stale unless something updates them,
+# which is what this is for.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# One hostname, two paths, and they have very different audiences.
+#
+#   /               the dashboard — a human, behind whatever you use for TLS
+#   /graph/notify   Microsoft's notification webhook — unauthenticated by nature
+#
+# The webhook cannot carry a credential Microsoft does not have, which is why the
+# connector checks the clientState it echoes back, in constant time, on every
+# notification. That check is the only thing distinguishing a real notification from
+# anyone on the internet who has found the endpoint, so the path is exposed
+# deliberately and nothing else is.
+#
+# Adjust the class and the host, or delete this and use whatever you already run.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lazaret
+  namespace: lazaret
+  annotations:
+    # A message with attachments is not small, and the analyzer page accepts uploads.
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    # A hunt over a year of mail is a columnar scan, not a web request.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [lazaret.example.com]
+      secretName: lazaret-tls
+  rules:
+    - host: lazaret.example.com
+      http:
+        paths:
+          - path: /graph/notify
+            pathType: Prefix
+            backend:
+              service:
+                name: ingest
+                port: {number: 8731}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard
+                port: {number: 8740}

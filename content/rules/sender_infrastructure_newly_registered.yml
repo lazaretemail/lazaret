@@ -1,0 +1,47 @@
+name: "Sender infrastructure stood up recently: young domain on a young network"
+description: >-
+  The sending domain was registered in the last 90 days and the message was handed over
+  by a host inside an IP range the regional registry allocated in the last 90 days.
+  Either alone is weak — a real new business registers a domain, and cloud providers
+  receive fresh allocations constantly — but together they say the domain and the
+  network it sends from were both brought into existence for this, which is what an
+  operator running their own short-lived infrastructure looks like.
+
+  Netblock age is the part that needs RDAP. MQL has no IP registration function, and
+  legacy WHOIS answers for IP space in five different free-text formats, so the
+  allocation date cannot be read reliably. RDAP returns it as a structured event.
+type: "rule"
+severity: "high"
+source: |
+  type.inbound
+
+  // Cheap gates first. Every lookup below is a network round trip, and this ordering
+  // means the overwhelming majority of mail never reaches one.
+  and sender.email.domain.root_domain not in $high_trust_sender_root_domains
+
+  // The sending domain is young. This much Sublime can ask.
+  and network.whois(sender.email.domain).days_old < 90
+
+  // And so is the network that handed the message over. This is the part that needs
+  // our RDAP tooling: `rdap.ip` is an Lazaret extension, not part of MQL.
+  //
+  // Scanning every Received IP rather than picking one is deliberate. Private relay
+  // hops are not in any registry, so they answer null, and `null < 90` is null rather
+  // than true — the miss stays a miss instead of becoming a match.
+  and any(headers.ips,
+      rdap.ip(.ip).days_old < 90
+  )
+
+tags:
+  - "Lazaret extension: rdap"
+attack_types:
+  - "Credential Phishing"
+  - "BEC/Fraud"
+  - "Malware/Ransomware"
+tactics_and_techniques:
+  - "Evasion"
+  - "Social engineering"
+detection_methods:
+  - "Sender analysis"
+  - "Header analysis"
+id: "b4f1c2d7-0a63-4e18-9c55-7ad3e9f61c84"

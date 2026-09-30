@@ -1,0 +1,150 @@
+# lazaret-dashboard — module 7
+
+Triage, hunt, rules and insights. Replaces Sublime's `dashboard` container.
+
+## Vue, and why it did not start that way
+
+A Vue 3 single-page app in TypeScript, built with Vite, embedded into the Go binary with
+`go:embed`. The Go side serves the bundle, holds the session, proxies to the engine, and
+does nothing else.
+
+The first version was `html/template` with about a hundred lines of vanilla JavaScript.
+The argument then was that npm in an otherwise Go repository means a second toolchain, a
+build step, a lockfile with several hundred transitive dependencies, and by some distance
+the largest attack surface in the product — against which it bought a nicer interaction
+model on four views.
+
+Two things changed. It stopped being four views: there are twenty-odd now, including an
+MQL editor with completion, live type-checking and schema-aware hints, which is not a
+thing you build with `<textarea>` and good intentions. And the templates were unpleasant
+enough to work in that they were quietly shaping what got built, which is the worse
+problem of the two.
+
+The original argument is still correct about the cost. It is paid deliberately, and the
+dependency list is short on purpose: Vue, Vue Router, TanStack Query, CodeMirror, two
+fonts. No component library, no CSS framework, no state management library.
+
+## It talks to the engine's public API and nothing else
+
+No database handle, no shared Go types beyond JSON. A deliberate constraint rather than
+an accident of layering: it keeps the API exercised by a real consumer rather than only
+by its own tests, and it means anything the dashboard can do, a script can do too.
+
+It also means the dashboard needs no credentials of its own and the engine needs no CORS
+configuration: every call is proxied through this service rather than made from the
+browser. The TypeScript types are generated from the Go wire structs with `tygo`, so the
+two cannot drift without the build noticing.
+
+The proxy is 48 explicit handlers rather than a path allowlist. Both
+`/v0/mailboxes/{id}/remediations` and `/v0/mailboxes/secrets` exist, the second returns
+mailbox passwords, and any pattern broad enough to be convenient eventually matches it.
+
+## Views
+
+| Path | What it is |
+|---|---|
+| `/triage` | Messages, verdicts, what fired, what has already been done |
+| `/overview` | Volume, verdict mix, and what the deployment cannot currently answer |
+| `/messages/:id` | The Message Data Model, the audit trail, and the disposition form |
+| `/search` | Structured search over stored mail |
+| `/hunt` | MQL over stored mail, with completion and live type-checking |
+| `/analyzer` | Paste an EML, get a verdict, change nothing |
+| `/detections` | What is loaded, and what each rule needs that this deployment may not have |
+| `/detections/effectiveness` | Which rules fire, which never have, which only false-positive |
+| `/detections/coverage` | Rules that cannot run here, grouped by the capability they want |
+| `/settings/*` | Org domains, mailboxes, actions, Microsoft 365, history scans, feeds, lists, learning, users |
+
+### Two things the UI is opinionated about
+
+**Coverage is a page, not a footnote.** A report listing detections without saying that
+nine hundred rule evaluations were blocked on a model nobody deployed makes a partial
+system look complete. It is the honest counterpart to the numbers on the overview.
+
+**The disposition form requires an actor.** The engine refuses an action without one,
+and so does this, so an analyst sees why on the page rather than a bare 400 from an API
+they did not know they were calling. There is no edit path for the audit trail.
+
+## Rendering hostile content
+
+Every string on the triage page was written by someone hostile — a subject line is
+attacker-controlled by definition. So:
+
+- Vue escapes interpolated text, and there is a test that feeds a real payload through
+  rather than trusting that it does. `v-html` appears nowhere.
+- A strict CSP: `default-src 'none'; script-src 'self'; style-src 'self' 'nonce-...'`,
+  with a fresh nonce per request. No inline handlers, no remote scripts, no remote fonts
+  or images — the fonts are bundled. CodeMirror is handed the same nonce
+  (`EditorView.cspNonce`) because it injects its own stylesheet.
+- Redirects after login go through an origin check. A `?next=` that a naive
+  `startsWith("/")` accepts includes `//evil.example`, which browsers read as a host.
+
+`-read-only` hides the action controls **and refuses the POST**. Hiding a button is not
+access control, and `TestReadOnlyRefusesActions` checks the difference.
+
+## Authentication
+
+Local passwords and OpenID Connect, and a deployment can have both at once. That
+combination is the point rather than indecision: an organisation running SSO still
+wants one local break-glass account, because the day the identity provider is broken is
+exactly the day someone needs to get into the security console.
+
+**The engine owns identity.** It authenticates people via sessions and services via API
+tokens, and enforces roles on every endpoint. The dashboard does the browser half — a
+form, or an OIDC redirect — and holds the resulting session in a cookie. That ordering
+matters: a login page in front of an unauthenticated API protects the page, not the
+data, and this API can quarantine mail and read every message.
+
+The caller's own session travels to the engine on every request, so the engine sees the
+actual person. The dashboard holds one privileged credential and uses it for exactly one
+thing: turning verified OIDC claims into a session, because at that moment there is no
+caller yet.
+
+### Roles
+
+| Role | Can |
+|---|---|
+| `viewer` | read triage, messages, insights, rules |
+| `analyst` | also act: quarantine, release, set triage state, hunt, analyze |
+| `admin` | also manage accounts and API tokens |
+
+A first-time SSO user gets `viewer`. An identity provider vouching that someone works
+here is not the same as deciding they may quarantine mail.
+
+### Getting started
+
+```sh
+# The engine creates the first account, and refuses to start with neither this nor
+# -no-auth: a system that is insecure until configured ships insecure.
+lazaret-engine ... -admin-email you@example.com -admin-password '...'
+
+# SSO additionally needs an admin token for the claims-to-session exchange.
+lazaret-engine ... -issue-token dashboard -issue-token-role admin
+
+lazaret-dashboard -engine http://localhost:8700 -service-token lzt_... \
+  -oidc-issuer https://login.example.com \
+  -oidc-client-id ... -oidc-client-secret ... \
+  -oidc-redirect-url https://lazaret.example.com/auth/callback
+```
+
+### What the sign-in code is careful about
+
+- **CSRF.** Every state-changing request carries a synchroniser token bound to the
+  session, checked in constant time. `SameSite=Lax` is set too, but it is a browser
+  behaviour rather than a server-enforced invariant and a same-site subdomain can still
+  post.
+- **Session cookies are `HttpOnly`**, so an XSS cannot read one, and `Secure` unless
+  `-insecure-cookies` is passed, which logs a warning.
+- **Sessions are server-side**, so signing out or disabling an account ends them now
+  rather than when a token would have expired.
+- **OIDC uses `state`, `nonce` and PKCE**, and refuses an unverified `email` claim —
+  several providers let a user set any address until it is verified, and an account
+  here is matched partly on it.
+- **`next=` is local-path only.** Otherwise the login page becomes an open redirect,
+  which is a good phishing lure precisely because it points at the security console.
+- **An unrecognised role denies.** A typo in a route's requirement must not grant
+  access to everyone.
+- **Passwords are argon2id** at the OWASP baseline, with a dummy verification when no
+  account exists so response time does not reveal who has one.
+
+Still missing, and worth naming: there is no rate limiting on sign-in, no multi-factor,
+and no SCIM provisioning. Put this behind a reverse proxy that does the first two.

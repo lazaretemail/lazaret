@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lazaret
+  labels:
+    name: lazaret
+    # Every pod here parses or renders hostile input. Baseline rather than
+    # restricted only because the renderer needs a Chromium sandbox; see render.yaml,
+    # which drops what it can and explains what it cannot.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

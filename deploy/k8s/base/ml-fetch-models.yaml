@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Downloads the model weights and the logo reference pack into the ml-models volume.
+#
+# A Job you run deliberately, not an initContainer that runs itself. Fetching weights
+# is a licensing decision — the model's terms are independent of this project's — and
+# building the logo pack means downloading fifty companies' trademarks. Neither should
+# happen because a pod restarted.
+#
+#   kubectl -n lazaret create -f ml-fetch-models.yaml
+#   kubectl -n lazaret wait --for=condition=complete job/ml-fetch-models --timeout=30m
+#   kubectl -n lazaret rollout restart deployment/ml
+#
+# Read the model card first: MoritzLaurer/deberta-v3-base-zeroshot-v2.0 is MIT, and
+# the "v2.0" refers to it being trained on data that permits commercial use. That is
+# why it is the default here rather than a better-scoring model with murkier terms.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-fetch-models
+  namespace: lazaret
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      # Needs the internet, unlike the ml pod it is filling a volume for.
+      labels: {app: ml-fetch-models, tier: analysis, egress-internet: "true"}
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: fetch
+          image: curlimages/curl:8.11.1
+          env:
+            - {name: MODEL, value: "MoritzLaurer/deberta-v3-base-zeroshot-v2.0"}
+            - {name: DIR, value: "/models"}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              BASE="https://huggingface.co/${MODEL}/resolve/main"
+              # To a temporary name and then renamed: an interrupted download that
+              # left a half-written zeroshot.onnx in place would be loaded on the
+              # next start, and a truncated graph fails in ways that look like a bug
+              # in the service.
+              fetch() {
+                echo "fetching $2"
+                curl -fL --retry 3 --retry-delay 5 -o "$2.part" "$1"
+                mv "$2.part" "$2"
+              }
+              # The model and its tokenizer are a pair. A graph with the wrong
+              # tokenizer produces token ids that mean something else and scores that
+              # look entirely plausible, so they are fetched together or not at all.
+              fetch "$BASE/onnx/model.onnx"  "$DIR/zeroshot.onnx"
+              fetch "$BASE/tokenizer.json"   "$DIR/zeroshot.tokenizer.json"
+              echo "models ready"
+          volumeMounts: [{name: models, mountPath: /models}]
+          resources:
+            requests: {cpu: "100m", memory: "128Mi"}
+            limits: {memory: "512Mi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      volumes:
+        - {name: models, persistentVolumeClaim: {claimName: ml-models}}

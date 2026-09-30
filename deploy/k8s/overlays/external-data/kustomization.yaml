@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Bring your own Postgres and object storage.
+#
+# The right shape for anything real. The base runs a single Postgres pod that holds
+# the rules, the tenants, the users, the audit log, the materialised profiles *and*
+# the DuckLake catalog that makes the corpus readable — which is a lot to put on one
+# pod with one PVC. An operator (CloudNativePG, Zalando) or a managed instance takes
+# that class of problem away.
+#
+# Point LAZARET_POSTGRES at the managed database in the lazaret-engine secret, and the
+# S3 settings below at the bucket store.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: lazaret
+
+resources:
+  - ../../base
+  - egress.yaml
+
+# Neither is ours to run any more.
+patches:
+  - target: {kind: StatefulSet, name: postgres}
+    patch: |
+      $patch: delete
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: postgres
+  - target: {kind: Service, name: postgres}
+    patch: |
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: postgres
+  - target: {kind: StatefulSet, name: garage}
+    patch: |
+      $patch: delete
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: garage
+  - target: {kind: Service, name: garage}
+    patch: |
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: garage
+
+  # The engine now talks to something outside the cluster, so it needs egress the
+  # analysis tier does not otherwise have. It already carries egress-internet for the
+  # list downloads, but that policy excludes the private ranges on purpose, so "the
+  # internet" never quietly includes the cluster or a metadata endpoint. A database on
+  # a private address has to be named.
+  #
+  # A second label rather than a different value for the first: a pod holds one value
+  # per key, so reusing `egress` here would remove the internet access instead of
+  # adding to it.
+  - target: {kind: Deployment, name: engine}
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: engine
+      spec:
+        template:
+          metadata:
+            labels:
+              egress-data: "true"
+
+  # Where the data actually lives. Replace all four.
+  #
+  # Two buckets, still: DuckLake rewrites and expires the corpus prefix during
+  # compaction, and custody holds the only copy of every quarantined message. They
+  # must not share a prefix.
+  - target: {kind: ConfigMap, name: lazaret}
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: lazaret
+      data:
+        LAZARET_S3_ENDPOINT: s3.eu-west-2.amazonaws.com
+        LAZARET_S3_REGION: eu-west-2
+        LAZARET_DATA: s3://your-corpus-bucket/
+        LAZARET_RAW: s3://your-custody-bucket/messages

@@ -1,0 +1,2334 @@
+{
+ "components": {
+  "schemas": {
+   "Enrichment_typesBrandInfo": {
+    "description": "Information about the recognized brand on the target page",
+    "properties": {
+     "confidence": {
+      "description": "Level of confidence that the correct brand (or none) was identified",
+      "enum": [
+       "low",
+       "medium",
+       "high"
+      ],
+      "type": "string"
+     },
+     "name": {
+      "description": "Name of identified brand in the target page. Null if no brand was identified.",
+      "enum": [
+       "ABN",
+       "ADP",
+       "AOL",
+       "AT&T",
+       "Adobe",
+       "AliExpress",
+       "Amazon",
+       "American Express",
+       "Apple",
+       "Authentisign",
+       "Awardco",
+       "BB&T Corporation",
+       "BBVA",
+       "BT",
+       "Bass Pro Shop",
+       "Bank of America",
+       "Barclays",
+       "Belastingdienst",
+       "Benteler",
+       "BeyondTrust",
+       "Bol",
+       "Box",
+       "CFA",
+       "CNA",
+       "CVS",
+       "Caixabank",
+       "Capital One Bank",
+       "CalPoly",
+       "Captcha",
+       "Carta",
+       "Chase",
+       "ChicagoTitle",
+       "Citi",
+       "Cloudflare",
+       "Coinbase",
+       "Couer Mining",
+       "CyberArk",
+       "DHL",
+       "DKB",
+       "DPD",
+       "Dayforce",
+       "Digid",
+       "Discord",
+       "Discover",
+       "Disney",
+       "DocuSign",
+       "Dropbox",
+       "EY",
+       "Ebay",
+       "Europol",
+       "Experian",
+       "Facebook",
+       "FakeAttachment",
+       "FanDuel",
+       "FedEx",
+       "FidelityTitle",
+       "FirstAm",
+       "FuboTV",
+       "GLS",
+       "GM",
+       "GeekSquad",
+       "Gemini Trust",
+       "Generic Captcha",
+       "Generic Webmail",
+       "Github",
+       "Gmail",
+       "GoDaddy",
+       "Google",
+       "GoogleDrive",
+       "Google Voice",
+       "Gusto",
+       "HSBC Bank",
+       "Heroku",
+       "Home Depot",
+       "HubSpot",
+       "Hulu",
+       "Huntress",
+       "ING",
+       "IRS",
+       "Indeed",
+       "Instagram",
+       "Invite Company",
+       "JFrog",
+       "KPN",
+       "Kehe",
+       "Key Bank",
+       "LawyersTitle",
+       "Ledger",
+       "LinkedIn",
+       "Lloyds",
+       "M & T Bank",
+       "MadisonTitle",
+       "MailChimp",
+       "Mailgun",
+       "Mastercard",
+       "McAfee",
+       "Meta",
+       "MetaMask",
+       "Microsoft",
+       "Microsoft Office365",
+       "Microsoft OneDrive",
+       "Microsoft Outlook",
+       "Microsoft SharePoint",
+       "Microsoft Teams",
+       "Mimecast",
+       "NATO",
+       "NHS",
+       "NatWest",
+       "Navan",
+       "Navy Federal Credit Union",
+       "Netflix",
+       "Norton",
+       "OVO",
+       "Octopus",
+       "Okta",
+       "OldRepublicTitle",
+       "OpenAI",
+       "PNC",
+       "Palo Alto Networks",
+       "Pandora",
+       "PayPal",
+       "PostNL",
+       "Postbank",
+       "Proton",
+       "Pulley",
+       "QuicklySign",
+       "Quickbooks",
+       "RBS",
+       "RLI",
+       "Rabobank",
+       "Rakuten",
+       "Robert Half",
+       "RoyalMail",
+       "SBB",
+       "SSA",
+       "Santander",
+       "Schwab",
+       "SendGrid",
+       "Shein",
+       "Signal",
+       "Silicon Valley Bank",
+       "Slack",
+       "Snowflake",
+       "Sparkasse",
+       "Spotify",
+       "Square",
+       "StewartTitle",
+       "Stratus",
+       "Stripe",
+       "SunTrust Bank",
+       "Swiss Post",
+       "Swisscom",
+       "TD Bank",
+       "Target",
+       "Targobank",
+       "Threads",
+       "TicorTitle",
+       "Tidal",
+       "TikTok",
+       "Trezor",
+       "TrustWallet",
+       "Tyrell",
+       "U.S. Bank",
+       "UCSB",
+       "UPS",
+       "USPS",
+       "Vanguard",
+       "Venmo",
+       "Visa",
+       "Vodafone",
+       "Volksbank",
+       "WeTransfer",
+       "Wells Fargo",
+       "Wex",
+       "WhatsApp",
+       "Wise",
+       "Workday",
+       "WoS",
+       "X",
+       "Yahoo",
+       "Zebra",
+       "Zelle",
+       "Zendesk",
+       "Ziggo",
+       "Zoom",
+       "Zscaler"
+      ],
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Enrichment_typesCredPhish": {
+    "description": "CredPhish analysis of the screenshot taken for the final URL",
+    "properties": {
+     "brand": {
+      "$ref": "#/components/schemas/Enrichment_typesBrandInfo"
+     },
+     "confidence": {
+      "description": "Level in a credential phish assessment, only set if .disposition is phishing",
+      "enum": [
+       "low",
+       "medium",
+       "high"
+      ],
+      "type": "string"
+     },
+     "contains_captcha": {
+      "description": "Final page contains a captcha test",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "contains_login": {
+      "description": "Final page resembles a login screen",
+      "nullable": true,
+      "type": "boolean"
+     },
+     "disposition": {
+      "description": "Verdict of the link, determined by various stages of analysis",
+      "enum": [
+       "benign",
+       "phishing",
+       "unknown"
+      ],
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Enrichment_typesLinkAnalysisRunDiagnostics": {
+    "description": "INTERNAL",
+    "properties": {
+     "created_at": {
+      "description": "When the diagnostic object was created",
+      "format": "date-time",
+      "type": "string"
+     },
+     "matched_exclusion_rule_id": {
+      "description": "ID of the customer link exclusion that caused the skip",
+      "type": "string"
+     },
+     "submit_verdict": {
+      "description": "Reason the URL was [not] submitted to Link Analysis",
+      "type": "string"
+     },
+     "submit_verdict_url": {
+      "description": "The URL upon which the submit verdict was based",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "FfiJSON": {
+    "description": "Response from the URL decoded as a JSON object for application/json content types",
+    "type": "object"
+   },
+   "Handler_typesLinkAnalysisResponse": {
+    "properties": {
+     "additional_responses": {
+      "description": "Additional HTTP responses for the page, which could be additional resources, XHR requests, etc.",
+      "items": {
+       "$ref": "#/components/schemas/Link_analysis_typesAdditionalResponse"
+      },
+      "type": "array"
+     },
+     "analyzed": {
+      "description": "Whether the target page was successfully analyzed for credential phishing attempts",
+      "type": "boolean"
+     },
+     "content_type": {
+      "description": "Content type of the page",
+      "type": "string"
+     },
+     "credphish": {
+      "$ref": "#/components/schemas/Enrichment_typesCredPhish"
+     },
+     "diagnostics": {
+      "$ref": "#/components/schemas/Enrichment_typesLinkAnalysisRunDiagnostics"
+     },
+     "effective_url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     },
+     "files_downloaded": {
+      "description": "All downloads from the page. These must download without interaction and within a few seconds",
+      "items": {
+       "$ref": "#/components/schemas/Link_analysis_typesDownloadedFile"
+      },
+      "type": "array"
+     },
+     "final_dom": {
+      "$ref": "#/components/schemas/Link_analysis_typesFinalDOM"
+     },
+     "original_url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     },
+     "page_status_code": {
+      "description": "HTTP status code of the page",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "redirect_history": {
+      "description": "Each URL which the link analysis service was redirected through",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     },
+     "retrieved": {
+      "description": "Whether the page was successfully retrieved",
+      "type": "boolean"
+     },
+     "retrieved_at": {
+      "description": "Time the page was retrieved",
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "screenshot": {
+      "$ref": "#/components/schemas/Mdm_serviceFile"
+     },
+     "status_code": {
+      "description": "HTTP status code for the requested page",
+      "format": "int32",
+      "type": "integer"
+     },
+     "submitted": {
+      "description": "Whether the page was submitted to be retrieved for analysis",
+      "type": "boolean"
+     },
+     "tags": {
+      "description": "Detection tags emitted by the URL scanner",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "unique_urls_accessed": {
+      "description": "All unique URLs accessed during the analysis",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     },
+     "would_analyze": {
+      "description": "Whether the link would have been analyzed if run in a rule",
+      "type": "boolean"
+     },
+     "would_submit": {
+      "description": "Whether the link would have been submitted if run in a rule",
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "Link_analysis_typesAdditionalResponse": {
+    "properties": {
+     "content_type": {
+      "description": "Content type of the response",
+      "type": "string"
+     },
+     "file": {
+      "$ref": "#/components/schemas/Link_analysis_typesDownloadedFile"
+     },
+     "json": {
+      "$ref": "#/components/schemas/FfiJSON"
+     },
+     "status_code": {
+      "description": "HTTP status code for the response",
+      "format": "int32",
+      "type": "integer"
+     },
+     "url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     }
+    },
+    "type": "object"
+   },
+   "Link_analysis_typesDownloadedFile": {
+    "description": "Raw HTTP response payload as a file",
+    "properties": {
+     "file_extension": {
+      "description": "File extension from context such as headers",
+      "type": "string"
+     },
+     "file_name": {
+      "description": "File name",
+      "type": "string"
+     },
+     "file_type": {
+      "description": "File type determined by looking at the magic bytes in the file",
+      "enum": [
+       "3gp",
+       "7z",
+       "Z",
+       "aac",
+       "aiff",
+       "amr",
+       "ar",
+       "avi",
+       "bmp",
+       "bz2",
+       "cab",
+       "cr2",
+       "crx",
+       "dcm",
+       "deb",
+       "dex",
+       "dey",
+       "doc",
+       "docx",
+       "dwg",
+       "elf",
+       "eot",
+       "epub",
+       "exe",
+       "flac",
+       "flv",
+       "gif",
+       "gz",
+       "heif",
+       "html",
+       "ico",
+       "ics",
+       "iso",
+       "jp2",
+       "jpg",
+       "jxr",
+       "lz",
+       "m4a",
+       "m4v",
+       "macho",
+       "mid",
+       "mkv",
+       "mov",
+       "mp3",
+       "mp4",
+       "mpg",
+       "nes",
+       "ogg",
+       "otf",
+       "pdf",
+       "png",
+       "ppt",
+       "pptx",
+       "ps",
+       "psd",
+       "rar",
+       "rpm",
+       "rtf",
+       "sqlite",
+       "svg",
+       "swf",
+       "tar",
+       "tif",
+       "ttf",
+       "wasm",
+       "wav",
+       "webm",
+       "webp",
+       "wmv",
+       "woff",
+       "woff2",
+       "xls",
+       "xlsx",
+       "xz",
+       "zip",
+       "zst",
+       "unknown"
+      ],
+      "type": "string"
+     },
+     "md5": {
+      "description": "MD5 hash of the downloaded file",
+      "type": "string"
+     },
+     "raw": {
+      "description": "Base64 encoded source of the file",
+      "format": "base64",
+      "nullable": true,
+      "type": "string"
+     },
+     "sha1": {
+      "description": "SHA1 hash of the downloaded file",
+      "type": "string"
+     },
+     "sha256": {
+      "description": "SHA256 hash of the downloaded file",
+      "type": "string"
+     },
+     "size": {
+      "description": "Size of the file in bytes",
+      "format": "int64",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "Link_analysis_typesFinalDOM": {
+    "description": "Full DOM of the analyzed URL",
+    "properties": {
+     "display_text": {
+      "description": "Visible text of the HTML document, with invisible characters removed and non-ASCII characters converted to ASCII spaces.",
+      "nullable": true,
+      "type": "string"
+     },
+     "inner_text": {
+      "description": "Inner text of the HTML document that doesn't include HTML tags.",
+      "nullable": true,
+      "type": "string"
+     },
+     "links": {
+      "description": "All links found in the HTML document",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceLink"
+      },
+      "type": "array"
+     },
+     "raw": {
+      "description": "Decoded raw content of a body text type (text/[subtype] section)",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "Mdm_serviceFile": {
+    "description": "File containing screenshot of final_url",
+    "properties": {
+     "file_extension": {
+      "description": "File extension from context such as headers",
+      "type": "string"
+     },
+     "file_name": {
+      "description": "File name",
+      "type": "string"
+     },
+     "file_type": {
+      "description": "File type determined by looking at the magic bytes in the file",
+      "enum": [
+       "3gp",
+       "7z",
+       "Z",
+       "aac",
+       "aiff",
+       "amr",
+       "ar",
+       "avi",
+       "bmp",
+       "bz2",
+       "cab",
+       "cr2",
+       "crx",
+       "dcm",
+       "deb",
+       "dex",
+       "dey",
+       "doc",
+       "docx",
+       "dwg",
+       "elf",
+       "eot",
+       "epub",
+       "exe",
+       "flac",
+       "flv",
+       "gif",
+       "gz",
+       "heif",
+       "html",
+       "ico",
+       "ics",
+       "iso",
+       "jp2",
+       "jpg",
+       "jxr",
+       "lz",
+       "m4a",
+       "m4v",
+       "macho",
+       "mid",
+       "mkv",
+       "mov",
+       "mp3",
+       "mp4",
+       "mpg",
+       "nes",
+       "ogg",
+       "otf",
+       "pdf",
+       "png",
+       "ppt",
+       "pptx",
+       "ps",
+       "psd",
+       "rar",
+       "rpm",
+       "rtf",
+       "sqlite",
+       "svg",
+       "swf",
+       "tar",
+       "tif",
+       "ttf",
+       "wasm",
+       "wav",
+       "webm",
+       "webp",
+       "wmv",
+       "woff",
+       "woff2",
+       "xls",
+       "xlsx",
+       "xz",
+       "zip",
+       "zst",
+       "unknown"
+      ],
+      "type": "string"
+     },
+     "raw": {
+      "description": "Base64 encoded source of the file",
+      "format": "base64",
+      "nullable": true,
+      "type": "string"
+     },
+     "size": {
+      "description": "Size of the file in bytes",
+      "format": "int64",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaBZip2": {
+    "description": "Unpacks bzip2 files. Reports size",
+    "properties": {
+     "size": {
+      "description": "Size of uncompressed file within.",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaDocX": {
+    "description": "Extracts details for a document, and explodes the text for further scanning.",
+    "properties": {
+     "author": {
+      "nullable": true,
+      "type": "string"
+     },
+     "category": {
+      "nullable": true,
+      "type": "string"
+     },
+     "comments": {
+      "nullable": true,
+      "type": "string"
+     },
+     "created": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "font_colors": {
+      "description": "all non black (#000000) detected font colors. represented as web colors (hex) without '#' prefix.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "image_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "keywords": {
+      "nullable": true,
+      "type": "string"
+     },
+     "last_printed": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "modified": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "revision": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "subject": {
+      "nullable": true,
+      "type": "string"
+     },
+     "title": {
+      "nullable": true,
+      "type": "string"
+     },
+     "word_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaEmbeddedHTMLScript": {
+    "properties": {
+     "language": {
+      "description": "Language of script, e.g. 'javascript'",
+      "nullable": true,
+      "type": "string"
+     },
+     "scripts": {
+      "nullable": true,
+      "type": "string"
+     },
+     "type": {
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaEncryptedDoc": {
+    "description": "Unpacks encrypted doc files by trying to break the password. Does not report totals",
+    "properties": {
+     "cracked_password": {
+      "description": "If the doc was successfully opened, this is the password for the doc.",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaEncryptedPdf": {
+    "description": "Unpacks encrypted PDF files by trying to break the password.",
+    "properties": {
+     "cracked_password": {
+      "description": "If the PDF was successfully opened, this is the password for the PDF.",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaEncryptedZip": {
+    "description": "Unpacks encrypted ZIP files by trying to break the password. Reports total files even if the zip could not be cracked.",
+    "properties": {
+     "cracked_password": {
+      "description": "If the ZIP was successfully opened, this is the password for the zip.",
+      "nullable": true,
+      "type": "string"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaEntropy": {
+    "description": "Shannon entropy of file",
+    "properties": {
+     "entropy": {
+      "description": "Shannon entropy (log base 2). A higher number means higher entropy.",
+      "format": "double",
+      "nullable": true,
+      "type": "number"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaExifTool": {
+    "description": "Responses from the popular ExifTools application",
+    "properties": {
+     "command_line_arguments": {
+      "type": "string"
+     },
+     "create_date": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "creator": {
+      "type": "string"
+     },
+     "exif_tool_version": {
+      "format": "double",
+      "type": "number"
+     },
+     "fields": {
+      "items": {
+       "$ref": "#/components/schemas/StrelkaKeyVal"
+      },
+      "type": "array"
+     },
+     "file_permissions": {
+      "type": "string"
+     },
+     "file_type": {
+      "type": "string"
+     },
+     "file_type_extension": {
+      "type": "string"
+     },
+     "flags": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "hot_key": {
+      "type": "string"
+     },
+     "image_height": {
+      "description": "In pixels",
+      "format": "int32",
+      "type": "integer"
+     },
+     "image_width": {
+      "description": "In pixels",
+      "format": "int32",
+      "type": "integer"
+     },
+     "linearized": {
+      "type": "string"
+     },
+     "local_base_path": {
+      "type": "string"
+     },
+     "modify_date": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "page_count": {
+      "format": "int32",
+      "type": "integer"
+     },
+     "pdf_version": {
+      "type": "string"
+     },
+     "producer": {
+      "type": "string"
+     },
+     "relative_path": {
+      "type": "string"
+     },
+     "run_window": {
+      "type": "string"
+     },
+     "source_file": {
+      "type": "string"
+     },
+     "target_file_dos_name": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "zip_bit_flag": {
+      "format": "int32",
+      "type": "integer"
+     },
+     "zip_compressed_size": {
+      "format": "int32",
+      "type": "integer"
+     },
+     "zip_file_name": {
+      "type": "string"
+     },
+     "zip_modify_date": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "zip_uncompressed_size": {
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaFlavors": {
+    "description": "matched yara and mime for file type identification",
+    "properties": {
+     "external": {
+      "description": "Flavors marked by scanners exploding a file",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "mime": {
+      "description": "Detected MIME type using the libmagic unix utility.",
+      "type": "string"
+     },
+     "yara": {
+      "description": "Matched YARA rules, for current definitions see [here](https://github.com/sublime-security/strelka/blob/main/build/configs/taste.yara)",
+      "items": {
+       "enum": [
+        "_7zip_file",
+        "arj_file",
+        "browser_manifest",
+        "cab_file",
+        "cpio_file",
+        "encrypted_zip",
+        "encrypted_word_document",
+        "pdf_encryption_dict",
+        "iso_file",
+        "mhtml_file",
+        "rar_file",
+        "tar_file",
+        "xar_file",
+        "zip_file",
+        "mp3_file",
+        "pkcs7_file",
+        "x509_der_file",
+        "x509_pem_file",
+        "bzip2_file",
+        "gzip_file",
+        "lzma_file",
+        "xz_file",
+        "zlib_file",
+        "doc_subheader_file",
+        "mso_file",
+        "olecf_file",
+        "ooxml_file",
+        "pdf_file",
+        "poi_hpbf_file",
+        "rtf_file",
+        "vbframe_file",
+        "wordml_file",
+        "xfdf_file",
+        "email_file",
+        "tnef_file",
+        "base64_pe",
+        "pgp_file",
+        "elf_file",
+        "lnk_file",
+        "macho_file",
+        "mz_file",
+        "bmp_file",
+        "cmap_file",
+        "gif_file",
+        "jpeg_file",
+        "postscript_file",
+        "png_file",
+        "psd_file",
+        "psd_image_file",
+        "svg_file",
+        "xicc_file",
+        "xmp_file",
+        "jar_manifest_file",
+        "bplist_file",
+        "fws_file",
+        "cws_file",
+        "zws_file",
+        "debian_package_file",
+        "rpm_file",
+        "upx_file",
+        "batch_file",
+        "javascript_file",
+        "vb_file",
+        "hta_file",
+        "html_file",
+        "ini_file",
+        "json_file",
+        "php_file",
+        "plist_file",
+        "soap_file",
+        "xml_file",
+        "avi_file",
+        "wmv_file"
+       ],
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaGZip": {
+    "description": "Unpacks gzip. Reports the size",
+    "properties": {
+     "size": {
+      "description": "Size of uncompressed file within.",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaHTML": {
+    "description": "Scripts and basic details from HTML files. Explodes scripts for further scanning.",
+    "properties": {
+     "hyperlinks": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "scripts": {
+      "description": "All unique identifiers present in JS. unescape and write may be considered suspicious; a variable name is also an identifier.",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaEmbeddedHTMLScript"
+      },
+      "type": "array"
+     },
+     "spans": {
+      "description": "HTML Span Tags",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaHTMLSpan"
+      },
+      "type": "array"
+     },
+     "title": {
+      "type": "string"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaHTMLSpan": {
+    "properties": {
+     "style": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaHash": {
+    "description": "Multiple hash algorithms",
+    "properties": {
+     "md5": {
+      "type": "string"
+     },
+     "sha1": {
+      "type": "string"
+     },
+     "sha256": {
+      "type": "string"
+     },
+     "ssdeep": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICS": {
+    "description": "Parses iCalendar files and extracts events, attachments, and metadata",
+    "properties": {
+     "calendars": {
+      "description": "Parsed calendar objects",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaICSCalendar"
+      },
+      "type": "array"
+     },
+     "flags": {
+      "description": "Warning/error flags from parsing",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "parse_error": {
+      "description": "Error message if parsing failed",
+      "nullable": true,
+      "type": "string"
+     },
+     "total": {
+      "$ref": "#/components/schemas/StrelkaICSTotal"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSAttachment": {
+    "properties": {
+     "decode_error": {
+      "description": "Extraction error message",
+      "type": "string"
+     },
+     "extracted": {
+      "description": "Whether file was extracted",
+      "type": "boolean"
+     },
+     "filename": {
+      "description": "Original filename",
+      "type": "string"
+     },
+     "mime_type": {
+      "description": "MIME type",
+      "type": "string"
+     },
+     "size": {
+      "description": "File size in bytes",
+      "type": "string"
+     },
+     "type": {
+      "description": "Attachment type",
+      "enum": [
+       "binary",
+       "base64_binary",
+       "uri",
+       "other"
+      ],
+      "type": "string"
+     },
+     "uri": {
+      "description": "URI for external references",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSAttendee": {
+    "properties": {
+     "mailbox": {
+      "$ref": "#/components/schemas/Mdm_serviceMailbox"
+     },
+     "partstat": {
+      "description": "Participation status",
+      "type": "string"
+     },
+     "role": {
+      "description": "Attendee role",
+      "type": "string"
+     },
+     "rsvp": {
+      "description": "RSVP requested",
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSCalendar": {
+    "properties": {
+     "calscale": {
+      "description": "Calendar scale",
+      "type": "string"
+     },
+     "components": {
+      "description": "Calendar components",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaICSComponent"
+      },
+      "type": "array"
+     },
+     "method": {
+      "description": "Calendar method",
+      "type": "string"
+     },
+     "prodid": {
+      "description": "Product identifier",
+      "type": "string"
+     },
+     "version": {
+      "description": "iCalendar version",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSComponent": {
+    "properties": {
+     "attachments": {
+      "description": "File attachments",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaICSAttachment"
+      },
+      "type": "array"
+     },
+     "attendees": {
+      "description": "Event attendees",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaICSAttendee"
+      },
+      "type": "array"
+     },
+     "class": {
+      "description": "Classification",
+      "type": "string"
+     },
+     "created": {
+      "description": "Creation date/time",
+      "type": "string"
+     },
+     "description": {
+      "description": "Detailed description",
+      "type": "string"
+     },
+     "dtend": {
+      "description": "End date/time",
+      "type": "string"
+     },
+     "dtstamp": {
+      "description": "Creation timestamp",
+      "type": "string"
+     },
+     "dtstart": {
+      "description": "Start date/time",
+      "type": "string"
+     },
+     "duration": {
+      "description": "Duration in human-readable format",
+      "type": "string"
+     },
+     "last_modified": {
+      "description": "Last modification date/time",
+      "type": "string"
+     },
+     "location": {
+      "description": "Event location",
+      "type": "string"
+     },
+     "organizers": {
+      "description": "Event organizers",
+      "items": {
+       "$ref": "#/components/schemas/StrelkaICSOrganizer"
+      },
+      "type": "array"
+     },
+     "priority": {
+      "description": "Priority level (0-9)",
+      "type": "string"
+     },
+     "sequence": {
+      "description": "Revision sequence",
+      "type": "string"
+     },
+     "status": {
+      "description": "Event status",
+      "type": "string"
+     },
+     "summary": {
+      "description": "Brief description",
+      "type": "string"
+     },
+     "transp": {
+      "description": "Transparency",
+      "type": "string"
+     },
+     "type": {
+      "description": "Component type",
+      "enum": [
+       "VEVENT",
+       "VTODO",
+       "VJOURNAL",
+       "VTIMEZONE",
+       "VALARM"
+      ],
+      "type": "string"
+     },
+     "uid": {
+      "description": "Unique identifier",
+      "type": "string"
+     },
+     "urls": {
+      "description": "Referenced URLs",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSOrganizer": {
+    "properties": {
+     "mailbox": {
+      "$ref": "#/components/schemas/Mdm_serviceMailbox"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaICSTotal": {
+    "description": "Summary counts for calendar components",
+    "properties": {
+     "alarms": {
+      "description": "Total VALARM components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "attachments": {
+      "description": "Total ATTACH properties",
+      "format": "int32",
+      "type": "integer"
+     },
+     "attendees": {
+      "description": "Total attendees across all components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "components": {
+      "description": "Total calendar components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "events": {
+      "description": "Total VEVENT components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "extracted_files": {
+      "description": "Successfully extracted files",
+      "format": "int32",
+      "type": "integer"
+     },
+     "journals": {
+      "description": "Total VJOURNAL components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "organizers": {
+      "description": "Total organizers across all components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "timezones": {
+      "description": "Total VTIMEZONE components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "todos": {
+      "description": "Total VTODO components",
+      "format": "int32",
+      "type": "integer"
+     },
+     "urls": {
+      "description": "Total URL properties",
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaJavascript": {
+    "description": "Contains details about the types of elements found in a JS script. Very simple scripts might signal obfuscation.",
+    "properties": {
+     "identifiers": {
+      "description": "All unique identifiers present in JS. unescape and write may be considered suspicious; a variable name is also an identifier.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "keywords": {
+      "description": "All unique keywords present in JS, e.g. 'if'.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "regular_expressions": {
+      "description": "All unique regular expressions present JS.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "strings": {
+      "description": "All unique strings present in JS.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "tokens": {
+      "description": "All unique tokens/types present in JS. The other values in this type would be present in this list if they occur at all. E.g. a simple script may contain just Identifier & Punctuator (punctuator is not included any further)",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaJpegGif": {
+    "description": "Extracts contents past the GIF trailer for further processing. Empty if there's no data based trailer.",
+    "properties": {
+     "trailer_index": {
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaKeyVal": {
+    "properties": {
+     "key": {
+      "type": "string"
+     },
+     "value": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaLNK": {
+    "description": "Extracted details from LNK files. See ExifTools too.",
+    "properties": {
+     "MAC": {
+      "type": "string"
+     },
+     "command_line_arguments": {
+      "type": "string"
+     },
+     "drive_serial_number": {
+      "type": "string"
+     },
+     "drive_type": {
+      "type": "string"
+     },
+     "local_base_path": {
+      "type": "string"
+     },
+     "machine_id": {
+      "type": "string"
+     },
+     "relative_path": {
+      "type": "string"
+     },
+     "volume_label": {
+      "type": "string"
+     },
+     "working_dir": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaLibArchive": {
+    "description": "Unpacks archives supported by libarchive (including ISO files). Reports totals",
+    "properties": {
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaMachO": {
+    "description": "Unpacks and inspects Mach Objects (executables, libraries, etc)",
+    "properties": {
+     "commands": {
+      "description": "All commands within",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "has_code_signature": {
+      "type": "boolean"
+     },
+     "header": {
+      "properties": {
+       "cpu": {
+        "description": "Details about the CPU/arch the binary is intended for",
+        "properties": {
+         "primary": {
+          "description": "Primary type, e.g. x86_64",
+          "type": "string"
+         },
+         "sub": {
+          "description": "Human description (may include ',', 'and', etc)",
+          "type": "string"
+         }
+        },
+        "type": "object"
+       },
+       "file": {
+        "description": "Typo of Macho",
+        "enum": [
+         "BUNDLE",
+         "CORE",
+         "DSYM",
+         "DYLIB",
+         "DYLIB_STUB",
+         "DYLINKER",
+         "EXECUTE",
+         "FVMLIB",
+         "KEXT_BUNDLE",
+         "OBJECT",
+         "PRELOAD"
+        ],
+        "type": "string"
+       },
+       "flags": {
+        "description": "Flag List from header",
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     },
+     "load_dylinker_name": {
+      "description": "Dylinker command name used",
+      "type": "string"
+     },
+     "nx": {
+      "description": "Binary has NX (non-executable stack) protection",
+      "type": "boolean"
+     },
+     "pie": {
+      "description": "Binary is position independent",
+      "type": "boolean"
+     },
+     "source_version": {
+      "description": "5 part source version",
+      "type": "string"
+     },
+     "symbols": {
+      "description": "Details about symbols within binary",
+      "properties": {
+       "imported": {
+        "description": "Imported symbols",
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "libraries": {
+        "description": "Imported libraries",
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       }
+      },
+      "type": "object"
+     },
+     "total_binaries": {
+      "description": "Number of binaries registered",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_commands": {
+      "description": "Number of load commands",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_libraries": {
+      "description": "Number of libraries/Dylib commands",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_relocations": {
+      "description": "Number of relocations",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_sections": {
+      "description": "Number of sections",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_segments": {
+      "description": "Number of segments",
+      "format": "int32",
+      "type": "integer"
+     },
+     "total_symbols": {
+      "description": "Number of symbols",
+      "format": "int32",
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaOCR": {
+    "description": "Attempts to find text in images and explodes the text for further scanning.",
+    "properties": {
+     "raw": {
+      "description": "Full text returned from OCR, including whitespace",
+      "type": "string"
+     },
+     "text": {
+      "description": "Array of words found by OCR",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaOle": {
+    "description": "Unpacks valid OLE files. Reports total files.",
+    "properties": {
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaOnenote": {
+    "description": "INTERNAL",
+    "properties": {},
+    "type": "object"
+   },
+   "StrelkaPDF": {
+    "description": "Unpacks a PDF for further processing. Reports total files.",
+    "properties": {
+     "invalid_urls": {
+      "description": "URLs which could not be parsed",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "urls": {
+      "description": "Detected URLs",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaPDFObjHash": {
+    "description": "Generates PDF Object Hash of the given PDF file",
+    "properties": {
+     "hash_string": {
+      "description": "Hash string used to generate the object hash for the PDF",
+      "type": "string"
+     },
+     "object_hash": {
+      "description": "Object hash of the PDF. This is the hash of the object types present in the document.",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaPPTX": {
+    "description": "Extracts details for a powerpoint (pptx) document, and explodes the text for further scanning.",
+    "properties": {
+     "author": {
+      "nullable": true,
+      "type": "string"
+     },
+     "category": {
+      "nullable": true,
+      "type": "string"
+     },
+     "comments": {
+      "nullable": true,
+      "type": "string"
+     },
+     "created": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "image_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "invalid_urls": {
+      "description": "URLs which could not be parsed",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "keywords": {
+      "nullable": true,
+      "type": "string"
+     },
+     "last_modified_by": {
+      "nullable": true,
+      "type": "string"
+     },
+     "last_printed": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "modified": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "revision": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "slide_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "subject": {
+      "nullable": true,
+      "type": "string"
+     },
+     "title": {
+      "nullable": true,
+      "type": "string"
+     },
+     "urls": {
+      "description": "Detected URLs",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     },
+     "word_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaQR": {
+    "description": "Checks for QR codes and evaluates them",
+    "properties": {
+     "data": {
+      "description": "Raw UTF8 Data",
+      "nullable": true,
+      "type": "string"
+     },
+     "type": {
+      "description": "Type of content, if known",
+      "enum": [
+       "email",
+       "mobile",
+       "app",
+       "geo",
+       "wifi",
+       "url",
+       "undefined"
+      ],
+      "type": "string"
+     },
+     "url": {
+      "$ref": "#/components/schemas/Mdm_serviceURL"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaRTF": {
+    "description": "Unpacks RTF files. Reports totals",
+    "properties": {
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaRar": {
+    "description": "Unpacks rar files. Reports totals",
+    "properties": {
+     "host_os": {
+      "nullable": true,
+      "type": "string"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaResponse": {
+    "properties": {
+     "depth": {
+      "description": "depth in explosion, starts at 0",
+      "format": "int32",
+      "type": "integer"
+     },
+     "file_extension": {
+      "description": "file extension if known. Using YARA and MIME rules (see .flavors) may provide more accurate detections.",
+      "type": "string"
+     },
+     "file_name": {
+      "description": "name of the file, or a placeholder. For files exploded from an archive this will be the actual name, but for extracted text, octet stream etc, it will be assigned by the parent to something arbitrary.",
+      "type": "string"
+     },
+     "flavors": {
+      "$ref": "#/components/schemas/StrelkaFlavors"
+     },
+     "node_id": {
+      "description": "ID representing this file in the tree",
+      "type": "string"
+     },
+     "parent_node_id": {
+      "description": "ID of parent, or not present for the root",
+      "type": "string"
+     },
+     "scan": {
+      "$ref": "#/components/schemas/StrelkaScan"
+     },
+     "size": {
+      "description": "file size in bytes",
+      "format": "int32",
+      "type": "integer"
+     },
+     "source": {
+      "description": "Scanner which 'exploded' this file",
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaScan": {
+    "description": "Contains results of all available bin explode scanners. Some scanners explode embedded binaries more than offer scan/analysis. Some of these have total_extracted & total_unextracted (the count of any files remaining after limits are hit). Some exploding scanners have limited analyses, besides the insight into the count of embedded files (see ZIP). RawOCR is an example which explodes, but does not report totals & explodes content which isn't truly an embedded file.",
+    "properties": {
+     "bzip2": {
+      "$ref": "#/components/schemas/StrelkaBZip2"
+     },
+     "docx": {
+      "$ref": "#/components/schemas/StrelkaDocX"
+     },
+     "encrypted_doc": {
+      "$ref": "#/components/schemas/StrelkaEncryptedDoc"
+     },
+     "encrypted_pdf": {
+      "$ref": "#/components/schemas/StrelkaEncryptedPdf"
+     },
+     "encrypted_zip": {
+      "$ref": "#/components/schemas/StrelkaEncryptedZip"
+     },
+     "entropy": {
+      "$ref": "#/components/schemas/StrelkaEntropy"
+     },
+     "exiftool": {
+      "$ref": "#/components/schemas/StrelkaExifTool"
+     },
+     "gif": {
+      "$ref": "#/components/schemas/StrelkaJpegGif"
+     },
+     "gzip": {
+      "$ref": "#/components/schemas/StrelkaGZip"
+     },
+     "hash": {
+      "$ref": "#/components/schemas/StrelkaHash"
+     },
+     "html": {
+      "$ref": "#/components/schemas/StrelkaHTML"
+     },
+     "ics": {
+      "$ref": "#/components/schemas/StrelkaICS"
+     },
+     "javascript": {
+      "$ref": "#/components/schemas/StrelkaJavascript"
+     },
+     "jpeg": {
+      "$ref": "#/components/schemas/StrelkaJpegGif"
+     },
+     "libarchive": {
+      "$ref": "#/components/schemas/StrelkaLibArchive"
+     },
+     "lnk": {
+      "$ref": "#/components/schemas/StrelkaLNK"
+     },
+     "macho": {
+      "$ref": "#/components/schemas/StrelkaMachO"
+     },
+     "ocr": {
+      "$ref": "#/components/schemas/StrelkaOCR"
+     },
+     "ole": {
+      "$ref": "#/components/schemas/StrelkaOle"
+     },
+     "onenote": {
+      "$ref": "#/components/schemas/StrelkaOnenote"
+     },
+     "pdf": {
+      "$ref": "#/components/schemas/StrelkaPDF"
+     },
+     "pdf_obj_hash": {
+      "$ref": "#/components/schemas/StrelkaPDFObjHash"
+     },
+     "pptx": {
+      "$ref": "#/components/schemas/StrelkaPPTX"
+     },
+     "qr": {
+      "$ref": "#/components/schemas/StrelkaQR"
+     },
+     "rar": {
+      "$ref": "#/components/schemas/StrelkaRar"
+     },
+     "rtf": {
+      "$ref": "#/components/schemas/StrelkaRTF"
+     },
+     "sensitivity_label": {
+      "$ref": "#/components/schemas/Mdm_serviceSensitivityLabel"
+     },
+     "strings": {
+      "$ref": "#/components/schemas/StrelkaStrings"
+     },
+     "tar": {
+      "$ref": "#/components/schemas/StrelkaTar"
+     },
+     "url": {
+      "$ref": "#/components/schemas/StrelkaURL"
+     },
+     "vba": {
+      "$ref": "#/components/schemas/StrelkaVBA"
+     },
+     "xlsx": {
+      "$ref": "#/components/schemas/StrelkaXLSX"
+     },
+     "xml": {
+      "$ref": "#/components/schemas/StrelkaXML"
+     },
+     "yara": {
+      "$ref": "#/components/schemas/StrelkaYARA"
+     },
+     "zip": {
+      "$ref": "#/components/schemas/StrelkaZip"
+     },
+     "zlib": {
+      "$ref": "#/components/schemas/StrelkaZLib"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaStrings": {
+    "description": "Simply finds and extracts any strings from.",
+    "properties": {
+     "raw": {
+      "description": "If the entire input is a string, mirror the input as a single string.",
+      "type": "string"
+     },
+     "strings": {
+      "description": "All detected strings.",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaTar": {
+    "description": "Unpacks tar files. Reports totals",
+    "properties": {
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaURL": {
+    "description": "Detects URLs from text (generally text unpacked by other scanners).",
+    "properties": {
+     "invalid_urls": {
+      "description": "URLs which could not be parsed",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "urls": {
+      "description": "Detected URLs.",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaVBA": {
+    "description": "Examines VBA macros in Ole files, and unpacks macro code for further analysis.",
+    "properties": {
+     "auto_exec": {
+      "description": "All keywords associated with auto exec macros",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "base64": {
+      "description": "Decoded base64 strings",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "dridex": {
+      "description": "Decoded dridex strings",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "hex": {
+      "description": "Decoded hex strings",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "ioc": {
+      "description": "String values of indicators, such as 'cmd.exe'",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "suspicious": {
+      "description": "Reported descriptions of suspicious behavior, e.g. 'Run' or 'Hex Strings'",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "vba_obfuscated": {
+      "description": "Decoded vba obfuscated strings",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaXLSX": {
+    "description": "INTERNAL",
+    "properties": {
+     "author": {
+      "nullable": true,
+      "type": "string"
+     },
+     "category": {
+      "nullable": true,
+      "type": "string"
+     },
+     "comments": {
+      "nullable": true,
+      "type": "string"
+     },
+     "content_status": {
+      "nullable": true,
+      "type": "string"
+     },
+     "created": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "identifier": {
+      "nullable": true,
+      "type": "string"
+     },
+     "invalid_urls": {
+      "description": "URLs which could not be parsed",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "keywords": {
+      "nullable": true,
+      "type": "string"
+     },
+     "language": {
+      "nullable": true,
+      "type": "string"
+     },
+     "last_modified_by": {
+      "nullable": true,
+      "type": "string"
+     },
+     "last_printed": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "modified": {
+      "format": "date-time",
+      "nullable": true,
+      "type": "string"
+     },
+     "revision": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "sheet_names": {
+      "items": {
+       "$ref": "#/components/schemas/StrelkaXLSXSheetInfo"
+      },
+      "type": "array"
+     },
+     "subject": {
+      "nullable": true,
+      "type": "string"
+     },
+     "title": {
+      "nullable": true,
+      "type": "string"
+     },
+     "urls": {
+      "description": "Detected URLs",
+      "items": {
+       "$ref": "#/components/schemas/Mdm_serviceURL"
+      },
+      "type": "array"
+     },
+     "version": {
+      "nullable": true,
+      "type": "string"
+     },
+     "word_count": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaXLSXSheetInfo": {
+    "properties": {
+     "name": {
+      "description": "Sheet name.",
+      "type": "string"
+     },
+     "visible": {
+      "description": "False if Excel marks this sheet hidden or very-hidden.",
+      "type": "boolean"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaXML": {
+    "description": "Finds namespaces and other details from XML",
+    "properties": {
+     "doc_type": {
+      "description": "DOCTYPE declaration from file",
+      "type": "string"
+     },
+     "namespaces": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "tags": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "version": {
+      "description": "XML version as declared by the document",
+      "nullable": true,
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaYARA": {
+    "description": "Reports YARA results from custom installed YARA rules.",
+    "properties": {
+     "flags": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "matches": {
+      "items": {
+       "$ref": "#/components/schemas/StrelkaYARAMatch"
+      },
+      "type": "array"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaYARAMatch": {
+    "properties": {
+     "meta": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object"
+     },
+     "name": {
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaZLib": {
+    "description": "Unpacks zlib files. Reports size",
+    "properties": {
+     "size": {
+      "description": "Size of uncompressed file within.",
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   },
+   "StrelkaZip": {
+    "description": "Unpacks ZIP files. Reports total files.",
+    "properties": {
+     "all_paths": {
+      "description": "All member paths included in the zip (files and folders)",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "attempted_files": {
+      "description": "File names, including path, which the scanner attempted to open (cuts off at a limit)",
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "encrypted": {
+      "description": "True if known to be encrypted. scan.encrypted_zip can contain details if password is bypassed.",
+      "type": "boolean"
+     },
+     "total_extracted": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     },
+     "total_files": {
+      "format": "int32",
+      "nullable": true,
+      "type": "integer"
+     }
+    },
+    "type": "object"
+   }
+  }
+ }
+}

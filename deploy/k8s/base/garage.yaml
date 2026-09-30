@@ -1,0 +1,133 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Garage (AGPL-3.0, Deuxfleurs) rather than MinIO, whose community edition was gutted
+# in 2025 and whose repository was archived in February 2026. SeaweedFS is the swap
+# once object counts reach the hundreds of millions.
+#
+# It holds two things with very different recovery stories:
+#
+#   lazaret-corpus    Parquet. Rebuildable in principle, painful in practice.
+#   lazaret-custody   the only remaining copy of every quarantined message.
+#
+# The second is the one that matters. Quarantine deletes the message from the mailbox,
+# so losing this volume does not degrade the platform — it destroys mail. Back it up
+# with the database, not with the caches.
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  namespace: lazaret
+spec:
+  selector: {app: garage}
+  ports:
+    - {name: s3, port: 3900, targetPort: 3900}
+    - {name: rpc, port: 3901, targetPort: 3901}
+    - {name: admin, port: 3903, targetPort: 3903}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garage
+  namespace: lazaret
+data:
+  garage.toml: |
+    metadata_dir = "/var/lib/garage/meta"
+    data_dir = "/var/lib/garage/data"
+    db_engine = "sqlite"
+    replication_factor = 1
+
+    rpc_bind_addr = "[::]:3901"
+    rpc_public_addr = "127.0.0.1:3901"
+    # Replaced by the initContainer below from the lazaret-garage secret. A literal
+    # here would be a cluster secret checked into git.
+    rpc_secret = "GARAGE_RPC_SECRET_PLACEHOLDER"
+
+    [s3_api]
+    s3_region = "garage"
+    api_bind_addr = "[::]:3900"
+    root_domain = ".s3.garage.localhost"
+
+    [admin]
+    api_bind_addr = "[::]:3903"
+    admin_token = "GARAGE_ADMIN_TOKEN_PLACEHOLDER"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage
+  namespace: lazaret
+spec:
+  serviceName: garage
+  replicas: 1
+  selector:
+    matchLabels: {app: garage}
+  template:
+    metadata:
+      labels: {app: garage, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # The image declares no user, so it would otherwise run as root. 1000 is
+        # arbitrary but consistent, and fsGroup makes the volumes writable by it.
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        # The config is a ConfigMap so it is readable, and the secrets in it are
+        # substituted at start rather than stored there.
+        - name: config
+          image: busybox:1.37
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              sed -e "s|GARAGE_RPC_SECRET_PLACEHOLDER|${GARAGE_RPC_SECRET}|" \
+                  -e "s|GARAGE_ADMIN_TOKEN_PLACEHOLDER|${GARAGE_ADMIN_TOKEN}|" \
+                  /config/garage.toml > /etc/garage/garage.toml
+          env:
+            - {name: GARAGE_RPC_SECRET, valueFrom: {secretKeyRef: {name: lazaret-garage, key: GARAGE_RPC_SECRET}}}
+            - {name: GARAGE_ADMIN_TOKEN, valueFrom: {secretKeyRef: {name: lazaret-garage, key: GARAGE_ADMIN_TOKEN}}}
+          volumeMounts:
+            - {name: config, mountPath: /config, readOnly: true}
+            - {name: rendered, mountPath: /etc/garage}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      containers:
+        - name: garage
+          image: dxflrs/garage:v1.0.1
+          # Explicit, because the default looks for /etc/garage.toml — a *file* —
+          # and the rendered config lands in a directory. Mounting an emptyDir over
+          # /etc to place one file would shadow the rest of /etc.
+          command: ["/garage", "-c", "/etc/garage/garage.toml", "server"]
+          ports:
+            - {name: s3, containerPort: 3900}
+            - {name: rpc, containerPort: 3901}
+            - {name: admin, containerPort: 3903}
+          volumeMounts:
+            - {name: rendered, mountPath: /etc/garage, readOnly: true}
+            - {name: meta, mountPath: /var/lib/garage/meta}
+            - {name: data, mountPath: /var/lib/garage/data}
+          readinessProbe:
+            tcpSocket: {port: 3900}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "100m", memory: "256Mi"}
+            limits: {memory: "2Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      volumes:
+        - {name: config, configMap: {name: garage}}
+        - {name: rendered, emptyDir: {}}
+  volumeClaimTemplates:
+    - metadata: {name: meta}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 5Gi}}
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        # The corpus and every held message. Size it for the mail you keep.
+        resources: {requests: {storage: 100Gi}}

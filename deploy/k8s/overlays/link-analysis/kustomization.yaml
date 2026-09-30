@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Turns on ml.link_analysis, which is 130 rules and a deliberate loss of containment.
+#
+# The renderer's whole isolation is that it cannot reach the internet: it has just
+# executed hostile HTML, and keeping it offline also stops analysing a message from
+# telling its sender it was read. Link analysis means visiting the links in a
+# message, which requires undoing exactly that.
+#
+# What you get: everything the corpus reads off ml.link_analysis except .credphish,
+# which needs a model. What you accept: a browser that fetches attacker-chosen URLs,
+# from your address space, and senders who can tell their mail was opened.
+#
+# The renderer's own SSRF guards still apply — it re-resolves on dial and refuses
+# private ranges — and the policy below keeps the private CIDRs excluded, so this is
+# egress to the internet rather than to your cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: lazaret
+
+resources:
+  - ../../base
+
+patches:
+  - target: {kind: Deployment, name: render}
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: render
+      spec:
+        template:
+          metadata:
+            labels:
+              egress-internet: "true"
+          spec:
+            containers:
+              - name: render
+                args: ["-addr", ":8710", "-fetch"]
+  - target: {kind: Deployment, name: engine}
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: engine
+      spec:
+        template:
+          spec:
+            containers:
+              - name: engine
+                args: ["-addr=:8700", "-link-analysis"]

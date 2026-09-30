@@ -1,0 +1,17 @@
+# Code generation for the vendored Strelka protocol.
+#
+# buf rather than protoc so that the only prerequisite is a Go toolchain: everything here
+# is `go run`/`go install`-able, which keeps the generate step reproducible for a
+# contributor who has never heard of protobuf.
+version: v2
+managed:
+  enabled: false
+plugins:
+  - local: protoc-gen-go
+    out: .
+    opt: module=github.com/lazaretemail/lazaret
+  - local: protoc-gen-go-grpc
+    out: .
+    opt: module=github.com/lazaretemail/lazaret
+inputs:
+  - directory: api/proto/strelka/v1

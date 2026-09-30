@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: v1
+kind: Service
+metadata:
+  name: render
+  namespace: lazaret
+spec:
+  selector: {app: render}
+  ports: [{name: http, port: 8710, targetPort: 8710}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: render
+  namespace: lazaret
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: render}
+  template:
+    metadata:
+      # No egress-internet label. This pod has just executed hostile HTML in a
+      # browser, and the NetworkPolicy denies it everything outward — which is also
+      # what stops rendering a message telling its sender it was read, because remote
+      # images and tracking pixels simply fail to load.
+      #
+      # Enabling ml.link_analysis means deliberately giving this egress. That is a
+      # separate decision with its own overlay; see the README.
+      labels: {app: render, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # 10001 is the `render` user the image creates. Chromium needs a real
+        # Debian base, so this is not a distroless image and not uid 65532.
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: render
+          image: ghcr.io/lazaretemail/lazaret-render:v0.1.0
+          args: ["-addr", ":8710"]
+          ports: [{name: http, containerPort: 8710}]
+          volumeMounts:
+            # Chromium writes a profile and shared memory. /dev/shm as a medium of
+            # Memory rather than the default 64MiB: a renderer given too little shared
+            # memory does not fail cleanly, it produces blank screenshots.
+            - {name: tmp, mountPath: /tmp}
+            - {name: dshm, mountPath: /dev/shm}
+          livenessProbe:
+            httpGet: {path: /v1/health, port: 8710}
+            periodSeconds: 20
+          readinessProbe:
+            httpGet: {path: /v1/health, port: 8710}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "250m", memory: "512Mi"}
+            limits: {memory: "2Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            # Chromium's own sandbox needs user namespaces, which is why this cannot
+            # be a `restricted` pod. What it can do is drop every capability and run
+            # unprivileged, so an escape from the browser lands in a container with
+            # no capabilities and no network out.
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true
+      volumes:
+        - {name: tmp, emptyDir: {}}
+        - {name: dshm, emptyDir: {medium: Memory, sizeLimit: 512Mi}}

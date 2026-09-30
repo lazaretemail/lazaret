@@ -1,0 +1,295 @@
+{
+  "lists": [
+    {
+      "file": "replyto_service_domains.txt",
+      "identifier": "replyto_service_domains",
+      "display_name": "These service domains send emails from their own system addresses while automatically inserting the original user's email address into the reply-to field. Useful in conjunction with reply-to sender profiles.",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "self_service_creation_platform_domains.txt",
+      "identifier": "self_service_creation_platform_domains",
+      "display_name": "These service domains allow users to easily create hosted content such as websites, presentations, survey, contact forms, etc. These are often abused by threat actors to host initial landing pages which link to the actual phishing page.",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "org_brand_names.txt",
+      "identifier": "org_brand_names",
+      "display_name": "This list should contain the various names, brands, trade names, or identifiers that your company uses or is commonly known by in business operations. This includes your official business name, any Doing Business As (DBA) names, brand names, shortened versions, common abbreviations, or industry nicknames that customers, partners, vendors, and the public use to identify and reference your organization.",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "alexa_top_1m.csv",
+      "identifier": "alexa_1m",
+      "display_name": "Alexa Top 1 Million Domains",
+      "headers": [
+        "x",
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "disposable_email_providers.txt",
+      "identifier": "disposable_email_providers",
+      "display_name": "Disposable (or Temporary) Email Providers",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "email_forwarding_domains.txt",
+      "identifier": "email_forwarding_domains",
+      "display_name": "Domains used for forwarding emails to a user inbox, typically to add a layer of privacy. These domains should not be able to send email on behalf of a user, they are solely for forwarding email.",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "file_extensions_common_archives.txt",
+      "identifier": "file_extensions_common_archives",
+      "display_name": "File extensions of common archives",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "file_extensions_executables.txt",
+      "identifier": "file_extensions_executables",
+      "display_name": "File extensions of common executables",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "file_extensions_macros.txt",
+      "identifier": "file_extensions_macros",
+      "display_name": "File extensions of documents that can run macros",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "file_extensions_suspicious.txt",
+      "identifier": "file_extensions_suspicious",
+      "display_name": "A list of observed extensions known to be abused by threat actors in malicious message content.",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "file_types_images.txt",
+      "identifier": "file_types_images",
+      "display_name": "File types of images, not necessarily matching file extensions but used by checking a file signature",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+     "file": "file_hashes_image_warning_banners.txt",
+     "identifier": "file_hashes_image_warning_banners",
+     "display_name": "File hashes of images added to messages by 3rd party systems to warn recipients.",
+     "headers": [
+       "entry"
+     ]
+    },
+    {
+      "file": "free_email_providers.txt",
+      "identifier": "free_email_providers",
+      "display_name": "Free Email Providers",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "free_file_hosts.txt",
+      "identifier": "free_file_hosts",
+      "display_name": "Free File Hosts",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "free_subdomain_hosts.txt",
+      "identifier": "free_subdomain_hosts",
+      "display_name": "Free Subdomain Hosts",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "high_trust_sender_root_domains.txt",
+      "identifier": "high_trust_sender_root_domains",
+      "display_name": "Highly reputable sending root domains",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "majestic_million.csv",
+      "identifier": "majestic_million",
+      "display_name": "Majestic Million (domains with most referring subnets)",
+      "headers": [
+        "x1",
+        "x2",
+        "entry",
+        "x3",
+        "x4",
+        "x5",
+        "x6",
+        "x7",
+        "x8",
+        "x9",
+        "x10",
+        "x11"
+      ],
+      "includes_header": true,
+      "format": "hostname"
+    },
+    {
+      "file": "suspicious_subjects.txt",
+      "identifier": "suspicious_subjects",
+      "display_name": "Suspicious subject phrases. Recommended usage: combine this with other signals, don't use on its own",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "bulk_mailer_url_root_domains.txt",
+      "identifier": "bulk_mailer_url_root_domains",
+      "display_name": "Domains used by mass mailers to track clicks (often abused by attackers)",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "social_landing_hosts.txt",
+      "identifier": "social_landing_hosts",
+      "display_name": "Root domains of social landing pages, also known as 'link-in-bio' pages.",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "parked_domain_nameservers.txt",
+      "identifier": "parked_domain_nameservers",
+      "display_name": "Nameservers commonly used by parked domains",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "suspicious_tlds.txt",
+      "identifier": "suspicious_tlds",
+      "display_name": "Suspicious Top-Level Domains",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "file": "tenant_domains.txt",
+      "identifier": "tenant_domains",
+      "display_name": "Domains (including the SaaS provider's root domain) allocated to your organization by third-party SaaS providers.",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "tranco.csv",
+      "identifier": "tranco_1m",
+      "display_name": "Tranco Top 1 Million Domains",
+      "headers": [
+        "x",
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "tranco_top_10k.csv",
+      "identifier": "tranco_10k",
+      "display_name": "Tranco Top 10,000 Domains",
+      "headers": [
+        "x",
+        "entry"
+      ]
+    },
+    {
+      "file": "tranco_top_50k.csv",
+      "identifier": "tranco_50k",
+      "display_name": "Tranco Top 50,000 Domains",
+      "headers": [
+        "x",
+        "entry"
+      ]
+    },
+    {
+      "file": "umbrella_top_1m.csv",
+      "identifier": "umbrella_1m",
+      "display_name": "Cisco Umbrella Top 1 Million Domains",
+      "headers": [
+        "x",
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "file": "umbrella_top_1m_tld.csv",
+      "identifier": "umbrella_1m_tld",
+      "display_name": "TLDs found in Cisco Umbrella Top 1 Million Domains",
+      "headers": [
+        "x",
+        "entry"
+      ]
+    },
+    {
+      "file": "url_shorteners.txt",
+      "identifier": "url_shorteners",
+      "display_name": "URL Shorteners",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    },
+    {
+      "url": "https://global-sublime-static-lists.s3.amazonaws.com/latest/abuse_ch_malwarebazaar_sha256_trusted_reporters.txt.gz",
+      "identifier": "abuse_ch_malwarebazaar_sha256_trusted_reporters",
+      "display_name": "Abuse.ch: MalwareBazaar SHA256 hashes. Note: Entries are limited to the following trusted reporters, but are otherwise unfiltered. We recommend using filtering logic in MQL to reduce potential false positives. Trusted reporters: abuse_ch, zbetcheckin, SecuriteInfoCom, elfdigest, cocaman, andretavare5, James_inthe_box, JAMESWT_MHT, TeamDreier, pr0xylife",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "url": "https://global-sublime-static-lists.s3.amazonaws.com/latest/abuse_ch_urlhaus_urls_trusted_reporters.txt.gz",
+      "identifier": "abuse_ch_urlhaus_urls_trusted_reporters",
+      "display_name": "Abuse.ch: URLhaus URLs. Note: Entries are limited to the following trusted reporters, but are otherwise unfiltered. We recommend using filtering logic in MQL to reduce potential false positives. Trusted reporters: lrz_urlhaus, geenensp, Cryptolaemus1, zbetcheckin, Gandylyan1, tammeto, abuse_ch, p5yb34m, spamhaus, tolisec",
+      "headers": [
+        "entry"
+      ]
+    },
+    {
+      "url": "https://global-sublime-static-lists.s3.amazonaws.com/latest/abuse_ch_urlhaus_domains_trusted_reporters.txt.gz",
+      "identifier": "abuse_ch_urlhaus_domains_trusted_reporters",
+      "display_name": "Abuse.ch: Domains derived from $abuse_ch_urlhaus_urls_trusted_reporters. Note: Entries are limited to the following trusted reporters, but are otherwise unfiltered. We recommend using filtering logic in MQL to reduce potential false positives. Trusted reporters: lrz_urlhaus, geenensp, Cryptolaemus1, zbetcheckin, Gandylyan1, tammeto, abuse_ch, p5yb34m, spamhaus, tolisec",
+      "headers": [
+        "entry"
+      ],
+      "format": "hostname"
+    }
+  ]
+}

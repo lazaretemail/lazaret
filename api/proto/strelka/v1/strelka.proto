@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: Apache-2.0
+//
+// Not AGPL-3.0 like the rest of this repository, and deliberately so: this file is
+// vendored from Strelka and carries Strelka's licence. The Go generated from it is a
+// derivative of this, so strelka/strelkapb/*.pb.go is Apache-2.0 too and must not be
+// given an AGPL header to make a linter happy.
+
+syntax = "proto3";
+
+// Vendored from github.com/target/strelka (Apache-2.0), src/go/api/strelka/strelka.proto.
+//
+// A package and go_package are added because protoc-gen-go requires them; upstream omits
+// both. Neither affects the wire format or the gRPC method path, which is derived from
+// the unqualified service name `Frontend` and must stay that way to interoperate.
+option go_package = "github.com/lazaretemail/lazaret/strelka/strelkapb";
+
+service Frontend {
+  rpc ScanFile(stream ScanFileRequest) returns (stream ScanResponse) {}
+}
+
+message Request {
+  string id = 1;
+  string client = 2;
+  string source = 3;
+  bool gatekeeper = 4;
+}
+
+message Attributes {
+  string filename = 1;
+  map<string, string> metadata = 2;
+}
+
+message ScanFileRequest {
+  bytes data = 1; // required
+  Request request = 2;
+  Attributes attributes = 3;
+}
+
+message ScanResponse {
+  string id = 1;
+  string event = 2;
+}

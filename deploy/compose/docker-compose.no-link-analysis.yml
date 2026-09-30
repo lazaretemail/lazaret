@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Turn link analysis off.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.no-link-analysis.yml up -d
+#
+# The default is on, because it is the difference between roughly 130 rules running
+# and the same 130 reporting indeterminate. This overlay is for deployments that have
+# decided the trade is not worth it, and the trade is real.
+#
+# What visiting a link costs you:
+#
+#   - A browser in your address space fetches URLs an attacker chose. The renderer
+#     re-resolves the host on dial and refuses private ranges, so this is egress to
+#     the internet rather than a path into your own network — but it is egress.
+#   - Senders can tell their mail was opened. A tracking link that is visited is a
+#     tracking link that fired, and it fires from you rather than from the recipient.
+#   - A link is fetched once per distinct URL per message, which is real time and
+#     real bandwidth on a mailbox that receives newsletters.
+#
+# What it does not cost you: screenshots of message bodies still work and still
+# resolve no hostnames at all, so a tracking pixel inside a message cannot fire
+# either way. That protection is in the renderer itself and this overlay does not
+# change it.
+services:
+  render:
+    # No -fetch: the service will not make outbound requests at all.
+    command: ["-addr", ":8710", "-height", "2400"]
+    # Back to the isolated network only.
+    networks: [analysis]
+
+  engine:
+    environment:
+      LAZARET_LINK_ANALYSIS: ""

@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# For a laptop cluster: kind, k3s, minikube, Docker Desktop.
+#
+# Smaller requests, smaller volumes, one dashboard replica, locally built images, and
+# the ONNX-free ml build — a 740MB model download is not a good first experience. The
+# service still answers entity extraction, language identification, the macro
+# classifier and brand wordmarks without it; the rules that need the entailment model
+# report indeterminate, which is the designed behaviour rather than a fault.
+#
+#   for s in engine dashboard render ingest ml; do
+#     docker build -f services/$s/Dockerfile -t ghcr.io/lazaretemail/lazaret-$s:v0.1.0 .
+#     kind load docker-image ghcr.io/lazaretemail/lazaret-$s:v0.1.0 --name lazaret
+#   done
+#   kubectl apply -k deploy/k8s/overlays/minimal
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: lazaret
+
+resources:
+  - ../../base
+
+# The plain build rather than the onnx one.
+images:
+  - name: ghcr.io/lazaretemail/lazaret-ml
+    newTag: v0.1.0
+
+replicas:
+  - {name: dashboard, count: 1}
+
+patches:
+  # Locally built images. Without this the pull policy sends Kubernetes to a registry
+  # for an image that is already sitting on the node.
+  - target: {kind: Deployment}
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+
+  # Fit on one machine. Requests shrink and memory limits come off, because a laptop
+  # would rather swap than have the kubelet kill the engine mid-hunt.
+  - target: {kind: Deployment}
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: {cpu: "50m", memory: "128Mi"}
+
+  - target: {kind: StatefulSet, name: postgres}
+    patch: |
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 5Gi
+  - target: {kind: StatefulSet, name: garage}
+    patch: |
+      - op: replace
+        path: /spec/volumeClaimTemplates/1/spec/resources/requests/storage
+        value: 10Gi
+  - target: {kind: PersistentVolumeClaim, name: ml-models}
+    patch: |
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 1Gi

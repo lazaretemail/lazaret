@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Everything that is a choice rather than a secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lazaret
+  namespace: lazaret
+data:
+  # Where the corpus lives. DuckLake writes Parquet here and rewrites it during
+  # compaction.
+  LAZARET_DATA: "s3://lazaret-corpus/"
+
+  # Where the original bytes of every ingested message are held.
+  #
+  # A different bucket from the corpus, deliberately. Quarantine deletes the message
+  # from the mailbox, so these objects are the only remaining copy — and DuckLake
+  # rewrites and expires what it owns, which must never be able to reach mail under
+  # legal hold.
+  LAZARET_RAW: "s3://lazaret-custody/messages"
+
+  LAZARET_S3_ENDPOINT: "garage:3900"
+  # Garage's default region, and not us-east-1. SigV4 signs the region into the
+  # request, so a wrong one is rejected as AuthorizationHeaderMalformed — which reads
+  # like a credentials problem and is not one.
+  LAZARET_S3_REGION: "garage"
+
+  LAZARET_RULES: "/etc/lazaret/rules"
+  LAZARET_TENANT: "default"
+
+  # Every enrichment this deployment can answer. Leaving one out breaks nothing — the
+  # rules that need it report indeterminate rather than no-match — but it does quietly
+  # remove a large part of the rule set.
+  #
+  #   render   file.message_screenshot, file.html_screenshot   (~110 rules)
+  #   ml       ml.nlu_classifier, ml.logo_detect and the rest  (~600 rules)
+  #   strelka  file.explode, beta.ocr, beta.scan_qr, …         (~440 rules)
+  LAZARET_RENDER: "http://render:8710"
+  LAZARET_ML: "http://ml:8720"
+
+  # Strelka is upstream's deployment, not ours — see third_party/strelka. Point this
+  # at its frontend service, in this namespace or another.
+  LAZARET_STRELKA: ""

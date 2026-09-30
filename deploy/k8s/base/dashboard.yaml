@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: lazaret
+spec:
+  selector: {app: dashboard}
+  ports: [{name: http, port: 8740, targetPort: 8740}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: lazaret
+spec:
+  # Stateless: sessions live in the engine, so this scales freely and a rolling
+  # update does not sign anyone out.
+  replicas: 2
+  selector:
+    matchLabels: {app: dashboard}
+  template:
+    metadata:
+      labels: {app: dashboard, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: dashboard
+          image: ghcr.io/lazaretemail/lazaret-dashboard:v0.1.0
+          args: ["-addr=:8740"]
+          env:
+            - {name: LAZARET_ENGINE, value: "http://engine:8700"}
+            - {name: LAZARET_TENANT, valueFrom: {configMapKeyRef: {name: lazaret, key: LAZARET_TENANT}}}
+            # Single sign-on. Leave unset for local passwords only; the engine holds
+            # the accounts either way.
+            - {name: LAZARET_OIDC_ISSUER, value: ""}
+            - {name: LAZARET_OIDC_CLIENT_ID, value: ""}
+            - {name: LAZARET_OIDC_REDIRECT_URL, value: ""}
+          ports: [{name: http, containerPort: 8740}]
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8740}
+            periodSeconds: 20
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8740}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "50m", memory: "64Mi"}
+            limits: {memory: "256Mi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            readOnlyRootFilesystem: true

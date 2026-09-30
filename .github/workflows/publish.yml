@@ -1,0 +1,323 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Build and publish every service image to GHCR.
+#
+# Nightly from main, and on a version tag. A tag additionally moves `latest`, so
+# `:latest` is whatever was released last and `:nightly` is whatever main looked like
+# this morning — the two never collide.
+#
+# # Why the actions here are pinned to commits and ci.yml's are not
+#
+# This workflow holds `packages: write` and `id-token: write`. A tag reference is
+# mutable: whoever controls the action can change what `@v5` points at, and here that
+# would mean arbitrary code with a token that can publish images people deploy. CI has
+# neither permission and reads nothing secret, so it stays on tags for readability.
+# Dependabot updates these; the SHAs below are the ones in use by a pipeline this was
+# modelled on rather than resolved by hand.
+name: Publish images
+
+on:
+  schedule:
+    # Nightly, after most days' commits have landed.
+    - cron: '17 3 * * *'
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  # Owner rather than a literal, so a fork publishes to itself instead of failing on
+  # somebody else's namespace.
+  OWNER: ${{ github.repository_owner }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.image }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - engine
+          - ml
+          - ml-rocm
+          - ml-nvidia
+          - render
+          - ingest
+          - dashboard
+          - garage-init
+        platform:
+          - linux/amd64
+          - linux/arm64
+        exclude:
+          # ROCm has no arm64 at all, and ONNX Runtime publishes no aarch64 GPU
+          # build, so both accelerator images are amd64 or nothing. Someone on an
+          # arm64 host with a GPU gets the CPU image, which is the honest answer
+          # rather than a build that fails at 3am every night.
+          - image: ml-rocm
+            platform: linux/arm64
+          - image: ml-nvidia
+            platform: linux/arm64
+        include:
+          # Native runners per architecture. QEMU would work and would take hours:
+          # these images compile Go, a Vue bundle and in one case a C++ tokenizer.
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+          # Per-image build configuration. These merge into every row with the same
+          # `image`, so each one is written once rather than per platform.
+          - image: engine
+            context: .
+            file: services/engine/Dockerfile
+          - image: ml
+            context: .
+            file: services/ml/Dockerfile
+            target: runtime-onnx
+            build-args: |
+              TAGS=onnx
+              ORT_FLAVOR=cpu
+          # The AMD image, carrying MIGraphX and ROCm. Published with kernels for
+          # every AMD architecture, because it does not know which card it will land
+          # on — see ROCM_ARCHS in the Dockerfile for building a smaller one against
+          # your own hardware.
+          - image: ml-rocm
+            context: .
+            file: services/ml/Dockerfile
+            target: runtime-rocm
+            build-args: |
+              TAGS=onnx
+              ORT_FLAVOR=rocm
+            reclaim-disk: true
+          # One NVIDIA image, not two. The ONNX Runtime GPU package ships the CUDA
+          # and TensorRT providers together and the image carries the libraries for
+          # both, so the accelerator probe picks TensorRT where the card supports it
+          # and CUDA otherwise. Splitting them would be two 11GB images differing by
+          # three apt packages.
+          - image: ml-nvidia
+            context: .
+            file: services/ml/Dockerfile
+            target: runtime-gpu
+            build-args: |
+              TAGS=onnx
+              ORT_FLAVOR=gpu
+            reclaim-disk: true
+          - image: render
+            context: .
+            file: services/render/Dockerfile
+          - image: ingest
+            context: .
+            file: services/ingest/Dockerfile
+          - image: dashboard
+            context: .
+            file: services/dashboard/Dockerfile
+          - image: garage-init
+            context: deploy/compose/garage-init
+            file: deploy/compose/garage-init/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Reclaim disk
+        if: matrix.reclaim-disk
+        run: |
+          # The accelerator images are large: 14.8GB for AMD and 10.8GB for NVIDIA,
+          # nearly all of it precompiled GPU kernels, and a hosted runner does not
+          # have that much free by default. These directories are several gigabytes
+          # of toolchains nothing here uses.
+          #
+          # The AMD one was 30GB until its runtime stopped being built on top of
+          # AMD's full SDK. If this stops being enough again, look there first rather
+          # than deleting more of the runner.
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo docker image prune --all --force || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Prepare
+        run: |
+          platform='${{ matrix.platform }}'
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+          echo "IMAGE_REF=${{ env.REGISTRY }}/${{ env.OWNER }}/lazaret-${{ matrix.image }}" >> "$GITHUB_ENV"
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f
+        with:
+          images: ${{ env.IMAGE_REF }}
+          # latest=auto moves `latest` when a semver tag is pushed and leaves it alone
+          # for everything else, so nightly never becomes latest. It does not consult
+          # the registry, so tagging an older patch after a newer minor would move
+          # `latest` backwards — worth knowing before cutting a backport release.
+          flavor: latest=auto
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=schedule,pattern=nightly
+          labels: |
+            org.opencontainers.image.title=lazaret-${{ matrix.image }}
+            org.opencontainers.image.licenses=AGPL-3.0-only
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          platforms: ${{ matrix.platform }}
+          build-args: ${{ matrix['build-args'] }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          # By digest, with the tags applied later by the merge job. Tagging here
+          # would give each architecture the same tag in turn and leave whichever
+          # finished last as the only one anybody could pull.
+          outputs: type=image,name=${{ env.IMAGE_REF }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          cache-from: type=registry,ref=${{ env.IMAGE_REF }}:buildcache-${{ env.PLATFORM_PAIR }}
+          cache-to: type=registry,ref=${{ env.IMAGE_REF }}:buildcache-${{ env.PLATFORM_PAIR }},mode=max,ignore-error=true
+          provenance: mode=max
+          sbom: true
+
+      - name: Export digest
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/digests
+          digest='${{ steps.build.outputs.digest }}'
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: digests-${{ matrix.image }}-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: manifest ${{ matrix.image }}
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - engine
+          - ml
+          - ml-rocm
+          - ml-nvidia
+          - render
+          - ingest
+          - dashboard
+          - garage-init
+
+    steps:
+      - name: Prepare
+        run: echo "IMAGE_REF=${{ env.REGISTRY }}/${{ env.OWNER }}/lazaret-${{ matrix.image }}" >> "$GITHUB_ENV"
+
+      - name: Download digests
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: /tmp/digests
+          pattern: digests-${{ matrix.image }}-*
+          merge-multiple: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f
+        with:
+          images: ${{ env.IMAGE_REF }}
+          flavor: latest=auto
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=schedule,pattern=nightly
+
+      - name: Create manifest list and push
+        id: push
+        working-directory: /tmp/digests
+        run: |
+          set -euo pipefail
+          # One manifest list per image, carrying whichever architectures were built.
+          # The accelerator images are amd64 only and produce a single-entry list,
+          # which is correct: `docker pull` on arm64 then says no matching manifest
+          # rather than handing over an image that cannot run.
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_REF }}@sha256:%s ' *)
+
+          tag=$(jq -r '.tags[0] // ""' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          if [ -z "$tag" ]; then
+            echo "::error::no tags were generated for ${{ env.IMAGE_REF }}"
+            echo "$DOCKER_METADATA_OUTPUT_JSON"
+            exit 1
+          fi
+          digest=$(docker buildx imagetools inspect "$tag" --format '{{.Manifest.Digest}}')
+          if [ -z "$digest" ]; then
+            echo "::error::could not resolve a manifest digest for $tag"
+            exit 1
+          fi
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "pushed $tag@$digest" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest
+        uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8
+        with:
+          subject-name: ${{ env.IMAGE_REF }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true

@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Garnet (MIT, Microsoft Research) rather than Redis, which relicensed to SSPL in
+# 2024. Valkey is the drop-in alternative if you would rather.
+#
+# Queue and cache only. Nothing durable lives here, and in particular not profiles:
+# losing this pod loses throughput, never data.
+apiVersion: v1
+kind: Service
+metadata:
+  name: garnet
+  namespace: lazaret
+spec:
+  selector: {app: garnet}
+  ports: [{name: resp, port: 6379, targetPort: 6379}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garnet
+  namespace: lazaret
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: garnet}
+  template:
+    metadata:
+      labels: {app: garnet, tier: analysis}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # 1654 is APP_UID in Microsoft's .NET base images, which is the user this
+        # one declares. Not 1000.
+        runAsUser: 1654
+        runAsGroup: 1654
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: garnet
+          image: ghcr.io/microsoft/garnet:1.0.60
+          args: ["--port", "6379", "--bind", "0.0.0.0"]
+          ports: [{name: resp, containerPort: 6379}]
+          readinessProbe:
+            tcpSocket: {port: 6379}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: "100m", memory: "256Mi"}
+            limits: {memory: "1Gi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
