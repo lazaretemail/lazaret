@@ -264,8 +264,7 @@ Evidence already in hand was being thrown away for less.
 
 A browser result substantially smaller than what was served now counts as the browser
 having been turned away, and the served HTML is kept instead. **Both engines trigger it**,
-which is the point. It isn't a workaround for the lightweight one, it's a property the path
-was missing.
+so this isn't a workaround for the lightweight one. It's a property the path was missing.
 
 Switching engines is one environment variable, `LAZARET_LINK_BROWSER`, pointed at any CDP
 endpoint. The client behind it lives in `services/render/cdp.go` and is deliberately not
@@ -405,8 +404,8 @@ which is why modules 3 and 5 had exact output shapes to build against.
 
 ### The published schema is not the wire format
 
-A caveat we learned twice, expensively, and worth stating once for every module that
-integrates an upstream service.
+We learned this one twice, expensively, and it applies to every module that integrates an
+upstream service.
 
 Sublime's published schemas describe what *their API returns*, which is a processed view of
 what the underlying service emits. Both divergences found so far are in `file.explode`:

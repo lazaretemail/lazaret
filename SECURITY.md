@@ -20,14 +20,14 @@ straight answer about whether and when it'll be fixed.
 Everything in this repository, plus the deployment in `deploy/`. The parts most worth
 pointing a fuzzer at:
 
-- **`eml/`** — RFC 822 parsing. Easily the most attacker-exposed code here. Real phishing
-  rarely parses cleanly, and every byte of it was chosen by someone hostile.
-- **`mql/`** — lexer, parser, checker, evaluator. Rules are usually trusted input, but a
+- **`eml/`**: RFC 822 parsing, and easily the most attacker-exposed code here. Real
+  phishing rarely parses cleanly, and every byte of it was chosen by someone hostile.
+- **`mql/`**: lexer, parser, checker, evaluator. Rules are usually trusted input, but a
   crafted rule arriving from a feed and reaching `lazaret lint` isn't.
-- **`services/render/`** — a headless Chromium that loads attacker-controlled HTML and,
-  once link analysis is on, visits attacker-chosen URLs. The SSRF guards are in `fetch.go`.
-- **`services/ingest/`** — holds mailbox credentials and performs deletions.
-- **`services/dashboard/`** — renders attacker-written strings into an operator's browser.
+- **`services/render/`**: a headless Chromium that loads attacker-controlled HTML and, once
+  link analysis is on, visits attacker-chosen URLs. The SSRF guards are in `fetch.go`.
+- **`services/ingest/`**: holds mailbox credentials and performs deletions.
+- **`services/dashboard/`**: renders attacker-written strings into an operator's browser.
 
 `eml/` and `mql/` have `go test -fuzz` targets. If you find a crasher, the corpus entry on
 its own is a complete report.
